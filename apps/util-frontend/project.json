@@ -1,0 +1,9 @@
+{
+  "name": "util-frontend",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/util-frontend/src",
+  "projectType": "application",
+  "tags": ["app"],
+  "// targets": "to see all targets run: nx show project util-frontend --web",
+  "targets": {}
+}
