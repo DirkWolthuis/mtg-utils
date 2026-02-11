@@ -15,8 +15,10 @@
     "@angular/forms": "~21.1.0",
     "@angular/platform-browser": "~21.1.0",
     "@angular/router": "~21.1.0",
-    "rxjs": "~7.8.0",
-    "@nx/angular": "22.5.0"
+    "@nx/angular": "22.5.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "rxjs": "~7.8.0"
   },
   "devDependencies": {
     "@analogjs/vite-plugin-angular": "~2.1.2",
@@ -37,6 +39,7 @@
     "@nx/js": "22.5.0",
     "@nx/module-federation": "22.5.0",
     "@nx/playwright": "22.5.0",
+    "@nx/react": "^22.5.0",
     "@nx/rspack": "22.5.0",
     "@nx/vite": "22.5.0",
     "@nx/vitest": "22.5.0",
