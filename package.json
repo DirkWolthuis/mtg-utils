@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "serve": "nx run mtg-util-host:serve"
+    "serve": "nx run-many -t serve --projects=tag:remote,tag:host",
+    "serve-remotes": "nx run-many -t serve --projects=tag:remote",
+    "financial-collection-tracker:serve": "nx run financial-collection-tracker:serve"
   },
   "private": true,
   "dependencies": {
