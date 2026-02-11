@@ -2,7 +2,9 @@
   "name": "@mtg-util/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "serve": "nx run mtg-util:serve"
+  },
   "private": true,
   "dependencies": {
     "@angular/common": "~21.1.0",
@@ -30,13 +32,13 @@
     "@nx/eslint": "22.5.0",
     "@nx/eslint-plugin": "22.5.0",
     "@nx/js": "22.5.0",
-    "@nx/playwright": "22.0.2",
+    "@nx/playwright": "22.5.0",
     "@nx/rspack": "22.5.0",
     "@nx/vite": "22.5.0",
     "@nx/vitest": "22.5.0",
     "@nx/web": "22.5.0",
     "@nx/workspace": "22.5.0",
-    "@playwright/test": "^1.36.0",
+    "@playwright/test": "^1.58.2",
     "@rspack/cli": "1.6.8",
     "@rspack/core": "1.6.8",
     "@rspack/dev-server": "^1.1.4",

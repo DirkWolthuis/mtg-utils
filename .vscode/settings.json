@@ -5,7 +5,7 @@
       "splitTerminals": [
         {
           "name": "serve",
-          "commands": ["nvm use 25", "pnpm i", "pnpm serve:ui"]
+          "commands": ["nvm use 25", "npm i", "npm run serve"]
         },
         {
           "name": "custom",

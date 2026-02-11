@@ -20,7 +20,7 @@
       "executor": "@nx/web:file-server",
       "options": {
         "buildTarget": "mtg-util:build",
-        "port": 4200,
+        "port": 8888,
         "spa": true
       }
     }

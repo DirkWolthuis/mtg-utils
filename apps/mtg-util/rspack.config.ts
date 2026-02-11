@@ -19,7 +19,9 @@ export default createConfig(
         },
       ],
       styles: ['./src/styles.scss'],
-      devServer: {},
+      devServer: {
+        port: 8888,
+      },
     },
   },
   {
@@ -52,5 +54,5 @@ export default createConfig(
         devServer: {},
       },
     },
-  }
+  },
 );
