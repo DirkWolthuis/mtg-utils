@@ -16,6 +16,7 @@ export default {
       { config },
       {
         dts: false,
+        library: { type: 'var', name: 'financial_collection_tracker' },
       },
     ),
     new NxModuleFederationDevServerPlugin({ config }),
