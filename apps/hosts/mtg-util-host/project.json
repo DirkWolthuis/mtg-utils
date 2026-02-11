@@ -1,15 +1,15 @@
 {
-  "name": "mtg-util",
-  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "mtg-util-host",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "prefix": "app",
-  "sourceRoot": "apps/mtg-util/src",
-  "tags": [],
+  "sourceRoot": "apps/hosts/mtg-util-host/src",
+  "tags": ["host", "app"],
   "targets": {
     "extract-i18n": {
       "executor": "@angular-devkit/build-angular:extract-i18n",
       "options": {
-        "buildTarget": "mtg-util:build"
+        "buildTarget": "mtg-util-host:build"
       }
     },
     "lint": {
@@ -19,10 +19,13 @@
       "continuous": true,
       "executor": "@nx/web:file-server",
       "options": {
-        "buildTarget": "mtg-util:build",
+        "buildTarget": "mtg-util-host:build",
         "port": 8888,
         "spa": true
       }
+    },
+    "serve": {
+      "options": {}
     }
   }
 }
