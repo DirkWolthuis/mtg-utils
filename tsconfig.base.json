@@ -14,12 +14,7 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {
-      "financial-collection-tracker/Routes": [
-        "apps/remotes/financial-collection-tracker/src/app/remote-entry/entry.routes.ts"
-      ],
-      "test/Module": ["apps/remotes/test/src/remote-entry.ts"]
-    }
+    "paths": {}
   },
   "exclude": ["node_modules", "tmp"]
 }

@@ -43,4 +43,4 @@ Thumbs.db
 
 .angular
 
-vitest.config.*.timestamp*
+__screenshots__/
