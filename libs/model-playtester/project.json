@@ -1,0 +1,9 @@
+{
+  "name": "model-playtester",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/model-playtester/src",
+  "projectType": "library",
+  "tags": ["model", "lib"],
+  "// targets": "to see all targets run: nx show project model-playtester --web",
+  "targets": {}
+}

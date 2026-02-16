@@ -14,7 +14,10 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@mtg-utils/model-playtester": ["libs/model-playtester/src/index.ts"],
+      "@mtg-utils/model-shared": ["libs/shared/model-shared/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }

@@ -1,0 +1,9 @@
+{
+  "name": "model-shared",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/shared/model-shared/src",
+  "projectType": "library",
+  "tags": ["model", "lib", "shared"],
+  "// targets": "to see all targets run: nx show project model-shared --web",
+  "targets": {}
+}
