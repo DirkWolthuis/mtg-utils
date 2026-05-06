@@ -7,7 +7,6 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/cdk": "^21.2.10",
     "@angular/common": "~21.2.0",
     "@angular/compiler": "~21.2.0",
     "@angular/core": "~21.2.0",
@@ -21,6 +20,7 @@
     "@angular-devkit/core": "~21.2.0",
     "@angular-devkit/schematics": "~21.2.0",
     "@angular/build": "~21.2.0",
+    "@angular/cdk": "^21.2.10",
     "@angular/cli": "~21.2.0",
     "@angular/compiler-cli": "~21.2.0",
     "@angular/language-service": "~21.2.0",
