@@ -1,0 +1,9 @@
+{
+  "name": "mtg-smart-tabletop-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/mtg-smart-tabletop-e2e/src",
+  "implicitDependencies": ["mtg-smart-tabletop"],
+  "// targets": "to see all targets run: nx show project mtg-smart-tabletop-e2e --web",
+  "targets": {}
+}

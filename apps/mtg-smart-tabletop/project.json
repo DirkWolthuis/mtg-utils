@@ -1,0 +1,82 @@
+{
+  "name": "mtg-smart-tabletop",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "stt",
+  "sourceRoot": "apps/mtg-smart-tabletop/src",
+  "tags": ["app"],
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/mtg-smart-tabletop",
+        "browser": "apps/mtg-smart-tabletop/src/main.ts",
+        "tsConfig": "apps/mtg-smart-tabletop/tsconfig.app.json",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/mtg-smart-tabletop/public"
+          }
+        ],
+        "styles": ["apps/mtg-smart-tabletop/src/styles.css"]
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "500kb",
+              "maximumError": "1mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "4kb",
+              "maximumError": "8kb"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@angular/build:dev-server",
+      "options": {
+        "port": 5656
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "mtg-smart-tabletop:build:production"
+        },
+        "development": {
+          "buildTarget": "mtg-smart-tabletop:build:development"
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {}
+    },
+    "serve-static": {
+      "continuous": true,
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "mtg-smart-tabletop:build",
+        "port": 5656,
+        "staticFilePath": "dist/apps/mtg-smart-tabletop/browser",
+        "spa": true
+      }
+    }
+  }
+}
