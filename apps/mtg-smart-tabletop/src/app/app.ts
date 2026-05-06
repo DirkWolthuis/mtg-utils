@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { NxWelcome } from './nx-welcome';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
 
 @Component({
-  imports: [NxWelcome, RouterModule],
+  imports: [RouterModule, MatSlideToggle],
   selector: 'stt-root',
   templateUrl: './app.html',
   styleUrl: './app.css',

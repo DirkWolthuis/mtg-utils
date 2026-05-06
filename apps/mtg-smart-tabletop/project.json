@@ -4,11 +4,15 @@
   "projectType": "application",
   "prefix": "stt",
   "sourceRoot": "apps/mtg-smart-tabletop/src",
-  "tags": ["app"],
+  "tags": [
+    "app"
+  ],
   "targets": {
     "build": {
       "executor": "@angular/build:application",
-      "outputs": ["{options.outputPath}"],
+      "outputs": [
+        "{options.outputPath}"
+      ],
       "options": {
         "outputPath": "dist/apps/mtg-smart-tabletop",
         "browser": "apps/mtg-smart-tabletop/src/main.ts",
@@ -19,7 +23,10 @@
             "input": "apps/mtg-smart-tabletop/public"
           }
         ],
-        "styles": ["apps/mtg-smart-tabletop/src/styles.css"]
+        "styles": [
+          "apps/mtg-smart-tabletop/src/material-theme.scss",
+          "apps/mtg-smart-tabletop/src/styles.css"
+        ]
       },
       "configurations": {
         "production": {
