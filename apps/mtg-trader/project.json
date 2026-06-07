@@ -1,31 +1,27 @@
 {
-  "name": "mtg-smart-tabletop",
+  "name": "mtg-trader",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "prefix": "stt",
-  "sourceRoot": "apps/mtg-smart-tabletop/src",
-  "tags": [
-    "app"
-  ],
+  "sourceRoot": "apps/mtg-trader/src",
+  "tags": ["app"],
   "targets": {
     "build": {
       "executor": "@angular/build:application",
-      "outputs": [
-        "{options.outputPath}"
-      ],
+      "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/apps/mtg-smart-tabletop",
-        "browser": "apps/mtg-smart-tabletop/src/main.ts",
-        "tsConfig": "apps/mtg-smart-tabletop/tsconfig.app.json",
+        "outputPath": "dist/apps/mtg-trader",
+        "browser": "apps/mtg-trader/src/main.ts",
+        "tsConfig": "apps/mtg-trader/tsconfig.app.json",
         "assets": [
           {
             "glob": "**/*",
-            "input": "apps/mtg-smart-tabletop/public"
+            "input": "apps/mtg-trader/public"
           }
         ],
         "styles": [
-          "apps/mtg-smart-tabletop/src/material-theme.scss",
-          "apps/mtg-smart-tabletop/src/styles.css"
+          "apps/mtg-trader/src/material-theme.scss",
+          "apps/mtg-trader/src/styles.css"
         ]
       },
       "configurations": {
@@ -60,10 +56,10 @@
       },
       "configurations": {
         "production": {
-          "buildTarget": "mtg-smart-tabletop:build:production"
+          "buildTarget": "mtg-trader:build:production"
         },
         "development": {
-          "buildTarget": "mtg-smart-tabletop:build:development"
+          "buildTarget": "mtg-trader:build:development"
         }
       },
       "defaultConfiguration": "development"
@@ -79,9 +75,9 @@
       "continuous": true,
       "executor": "@nx/web:file-server",
       "options": {
-        "buildTarget": "mtg-smart-tabletop:build",
+        "buildTarget": "mtg-trader:build",
         "port": 5656,
-        "staticFilePath": "dist/apps/mtg-smart-tabletop/browser",
+        "staticFilePath": "dist/apps/mtg-trader/browser",
         "spa": true
       }
     }
