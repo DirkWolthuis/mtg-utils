@@ -114,16 +114,8 @@ const main = async (): Promise<void> => {
     ws.once('error', reject);
   });
 
-  ws.on('message', (data) => {
-    const msg = JSON.parse(data.toString()) as ServerMessage;
-    lastMessage = msg;
-    if (msg.kind === 'state_sync' || msg.kind === 'event_batch') view = msg.view;
-    printIncoming(msg);
-  });
-
-  ws.on('close', () => {
-    console.log('<- connection closed');
-  });
+  let autoPass = false;
+  let lastAutoPassedView: PlayerView | null = null;
 
   const send = (msg: ClientMessage): void => {
     ws.send(JSON.stringify(msg));
@@ -132,6 +124,39 @@ const main = async (): Promise<void> => {
   const submit = (action: Action): void => {
     send({ kind: 'submit_action', gameId: args.game as never, action });
   };
+
+  /**
+   * Pass priority automatically if it's safe to do so:
+   *   - only when this player has priority
+   *   - never during declare_attackers (you may want to attack) if you're the active player
+   *   - never during declare_blockers if you're the defender
+   *
+   * Stack items still trigger auto-pass — both REPLs with `auto(true)` will
+   * keep cycling until the stack empties and the step advances.
+   */
+  const tryAutoPass = (): void => {
+    if (!autoPass) return;
+    if (!view) return;
+    if (view === lastAutoPassedView) return;
+    if (view.status !== 'active') return;
+    if (view.priorityPlayer !== playerId) return;
+    if (view.step === 'declare_attackers' && view.activePlayer === playerId) return;
+    if (view.step === 'declare_blockers' && view.activePlayer !== playerId) return;
+    lastAutoPassedView = view;
+    submit({ kind: 'pass_priority', playerId });
+  };
+
+  ws.on('message', (data) => {
+    const msg = JSON.parse(data.toString()) as ServerMessage;
+    lastMessage = msg;
+    if (msg.kind === 'state_sync' || msg.kind === 'event_batch') view = msg.view;
+    printIncoming(msg);
+    tryAutoPass();
+  });
+
+  ws.on('close', () => {
+    console.log('<- connection closed');
+  });
 
   send({
     kind: 'join_game',
@@ -325,10 +350,27 @@ const main = async (): Promise<void> => {
       }
       submit({ kind: 'declare_blockers', playerId, assignments });
     },
-    /** Pass to the next step. */
+    /** Pass priority. Both players passing in a row → resolve top of stack or advance the step. */
     pass: () => submit({ kind: 'pass_priority', playerId }),
     /** Concede the game. */
     concede: () => submit({ kind: 'concede', playerId }),
+    /**
+     * Toggle auto-pass. With no args, prints current state.
+     * When on, the REPL auto-sends pass_priority whenever this player gains
+     * priority — except during your own declare_attackers (active) or your
+     * declare_blockers (defender), where you might want to act.
+     */
+    auto: (enabled?: boolean) => {
+      if (enabled === undefined) {
+        console.log(`auto-pass is ${autoPass ? 'on' : 'off'}`);
+        return autoPass;
+      }
+      autoPass = !!enabled;
+      lastAutoPassedView = null;
+      console.log(`auto-pass ${autoPass ? 'on' : 'off'}`);
+      tryAutoPass();
+      return autoPass;
+    },
     /** Print the helper list. */
     help: () => {
       console.log(`
@@ -348,6 +390,11 @@ Actions (take card ids, not names):
   block([["c20", "c11"]])         — declare blockers ([blockerId, attackerId])
   pass()                          — pass priority (both players pass → resolve / advance step)
   concede()                       — concede the game
+
+Debugging:
+  auto(true)                      — auto-pass priority (skips routine waits; stops at combat declares)
+  auto(false)                     — turn off auto-pass
+  auto()                          — show current state
 `);
     },
   };
