@@ -198,12 +198,13 @@ const main = async (): Promise<void> => {
           .filter((r): r is NonNullable<typeof r> => r !== null),
       );
     },
-    /** Mana pool, life, step, etc. */
+    /** Mana pool, life, step, priority, etc. */
     me: () => {
       const v = requireView();
       if (!v) return;
+      const hasPriority = v.priorityPlayer === v.forPlayer ? ' (you have priority)' : '';
       console.log(
-        `turn=${v.turn} step=${v.step} active=${v.activePlayer} life=${v.self.life}/${v.opponent.life}`,
+        `turn=${v.turn} step=${v.step} active=${v.activePlayer} priority=${v.priorityPlayer}${hasPriority}\nlife=${v.self.life}/${v.opponent.life} stack=${v.stack.length}`,
         'mana=',
         v.self.manaPool,
       );
@@ -235,8 +236,8 @@ const main = async (): Promise<void> => {
       return rows.map((r) => r.id);
     },
     /**
-     * Play a card from your hand by id. Auto-detects land / creature / sorcery.
-     * For sorceries, pass `{ target: <playerId> | "opp" | "me" }` (defaults to opponent).
+     * Play a card from your hand by id. Auto-detects land / creature / sorcery / instant.
+     * For targeted spells, pass `{ target: <playerId> | "opp" | "me" }` (defaults to opponent).
      */
     play: (cardId: string, opts?: { target?: string }) => {
       const v = requireView();
@@ -257,7 +258,7 @@ const main = async (): Promise<void> => {
         submit({ kind: 'cast_creature', playerId, cardId: id, manaSpent: spent });
         return;
       }
-      if (def.types.includes('sorcery')) {
+      if (def.types.includes('sorcery') || def.types.includes('instant')) {
         const targetPlayer: PlayerId =
           opts?.target === 'me'
             ? v.forPlayer
@@ -267,10 +268,25 @@ const main = async (): Promise<void> => {
         const targets = (def.effects ?? [])
           .filter((e) => e.kind === 'deal_damage_to_any')
           .map(() => ({ kind: 'player' as const, playerId: targetPlayer }));
-        submit({ kind: 'cast_sorcery', playerId, cardId: id, manaSpent: spent, targets });
+        const kind = def.types.includes('instant') ? 'cast_instant' : 'cast_sorcery';
+        submit({ kind, playerId, cardId: id, manaSpent: spent, targets });
         return;
       }
       console.log(`don't know how to play "${def.name}"`);
+    },
+    /** Print the current stack (bottom to top; ↑ marks the top item that resolves next). */
+    stack: () => {
+      const v = requireView();
+      if (!v) return;
+      console.table(
+        v.stack.map((it, i) => ({
+          idx: i,
+          top: i === v.stack.length - 1 ? '↑' : '',
+          controller: it.controllerId,
+          card: getCardDefinition(v.cards[it.cardId]!.definitionId).name,
+          targets: it.targets.length,
+        })),
+      );
     },
     /** Tap a land you control for one mana of the given color. */
     tap: (cardId: string, color: ManaColor) => {
@@ -317,19 +333,20 @@ const main = async (): Promise<void> => {
     help: () => {
       console.log(`
 Discovery:
-  me()                            — turn, step, life, mana
+  me()                            — turn, step, priority, life, mana, stack height
   hand()                          — your hand (shows ids + names)
   bf()                            — your battlefield  (bf(false) for both)
+  stack()                         — current stack (bottom→top; ↑ resolves next)
   find("forest")                  — list ids of cards matching a name
   state(), last()                 — raw view / last server message
 
 Actions (take card ids, not names):
   play("c12")                     — play a land / cast a creature
-  play("c14", { target: "opp" })  — cast a sorcery (default target = opp)
+  play("c14", { target: "opp" })  — cast a sorcery/instant (default target = opp)
   tap("c8", "G")                  — tap a land for mana
   attack(["c11", "c13"])          — declare attackers
   block([["c20", "c11"]])         — declare blockers ([blockerId, attackerId])
-  pass()                          — pass to next step
+  pass()                          — pass priority (both players pass → resolve / advance step)
   concede()                       — concede the game
 `);
     },

@@ -15,6 +15,7 @@ const FOREST = makeCardDefinitionId('forest');
 const MOUNTAIN = makeCardDefinitionId('mountain');
 const BEARS = makeCardDefinitionId('grizzly-bears');
 const BOLT = makeCardDefinitionId('lightning-strike');
+const INSTANT_BOLT = makeCardDefinitionId('lightning-bolt');
 const SALVE = makeCardDefinitionId('healing-salve');
 
 const P1 = makePlayerId('p1');
@@ -31,7 +32,7 @@ const startBasicGame = (): { state: GameState; engine: ReturnType<typeof createD
         decklist: [
           FOREST, FOREST, FOREST, MOUNTAIN, MOUNTAIN,
           BEARS, BEARS, BEARS, BEARS, BEARS,
-          BOLT, BOLT, SALVE,
+          BOLT, BOLT, SALVE, INSTANT_BOLT,
         ],
       },
       {
@@ -40,7 +41,7 @@ const startBasicGame = (): { state: GameState; engine: ReturnType<typeof createD
         decklist: [
           MOUNTAIN, MOUNTAIN, MOUNTAIN, FOREST, FOREST,
           BEARS, BEARS, BEARS, BEARS, BEARS,
-          BOLT, BOLT, SALVE,
+          BOLT, BOLT, SALVE, INSTANT_BOLT,
         ],
       },
     ],
@@ -168,38 +169,139 @@ describe('engine', () => {
     expect(s.players[active].manaPool.G).toBe(1);
   });
 
-  it('dispatches a sorcery effect: lightning-strike deals 3 to opponent', () => {
+  it('sorcery goes on the stack, resolves only after both pass priority', () => {
     const start = startBasicGame();
     const active = start.state.activePlayer;
     const opponent = active === P1 ? P2 : P1;
     const seated = ensureInHand(start.state, active, BOLT);
-    const state = seated.state;
     const engine = start.engine;
     const boltId = seated.cardId;
 
-    // Cheat: directly add mana to active player's pool. The cleanest way without
-    // playing many turns is to mutate state for the test. Use the engine's apply
-    // wouldn't help because v0 only lets one land per turn.
-    const seeded: GameState = {
-      ...state,
+    let s: GameState = {
+      ...seated.state,
       players: {
-        ...state.players,
-        [active]: { ...state.players[active], manaPool: { W: 0, U: 0, B: 0, R: 1, G: 0, C: 1 } },
+        ...seated.state.players,
+        [active]: { ...seated.state.players[active], manaPool: { W: 0, U: 0, B: 0, R: 1, G: 0, C: 1 } },
       },
     };
-    const result = engine.apply(seeded, {
+
+    s = apply(engine, s, {
       kind: 'cast_sorcery',
       playerId: active,
       cardId: boltId,
       manaSpent: { R: 1, C: 1 },
       targets: [{ kind: 'player', playerId: opponent }],
     });
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    expect(result.value.state.players[opponent].life).toBe(17);
-    expect(result.value.state.cards[boltId].zone).toBe('graveyard');
-    const lifeChange = result.value.events.find((e) => e.kind === 'life_changed');
-    expect(lifeChange).toBeDefined();
+    // After cast: spell on stack, no damage yet
+    expect(s.stack.length).toBe(1);
+    expect(s.cards[boltId].zone).toBe('stack');
+    expect(s.players[opponent].life).toBe(20);
+
+    s = apply(engine, s, { kind: 'pass_priority', playerId: active });
+    expect(s.stack.length).toBe(1);
+    expect(s.players[opponent].life).toBe(20);
+
+    s = apply(engine, s, { kind: 'pass_priority', playerId: opponent });
+    // Both passed: top of stack resolves
+    expect(s.stack.length).toBe(0);
+    expect(s.players[opponent].life).toBe(17);
+    expect(s.cards[boltId].zone).toBe('graveyard');
+  });
+
+  it('instant can be cast by the non-active player during the active player\'s turn', () => {
+    const start = startBasicGame();
+    const active = start.state.activePlayer;
+    const opponent = active === P1 ? P2 : P1;
+    const seated = ensureInHand(start.state, opponent, INSTANT_BOLT);
+    const engine = start.engine;
+    const boltId = seated.cardId;
+
+    let s: GameState = {
+      ...seated.state,
+      players: {
+        ...seated.state.players,
+        [opponent]: { ...seated.state.players[opponent], manaPool: { W: 0, U: 0, B: 0, R: 1, G: 0, C: 0 } },
+      },
+    };
+    // Active player passes priority so opponent has priority
+    s = apply(engine, s, { kind: 'pass_priority', playerId: active });
+    expect(s.priorityPlayer).toBe(opponent);
+
+    // Opponent casts Lightning Bolt at active player
+    s = apply(engine, s, {
+      kind: 'cast_instant',
+      playerId: opponent,
+      cardId: boltId,
+      manaSpent: { R: 1 },
+      targets: [{ kind: 'player', playerId: active }],
+    });
+    expect(s.stack.length).toBe(1);
+    expect(s.players[active].life).toBe(20);
+    // After spell cast, caster (opponent) gets priority back
+    expect(s.priorityPlayer).toBe(opponent);
+
+    s = apply(engine, s, { kind: 'pass_priority', playerId: opponent });
+    s = apply(engine, s, { kind: 'pass_priority', playerId: active });
+    expect(s.players[active].life).toBe(17);
+    expect(s.stack.length).toBe(0);
+  });
+
+  it('stack resolves LIFO: instant cast in response to a sorcery resolves first', () => {
+    const start = startBasicGame();
+    const active = start.state.activePlayer;
+    const opponent = active === P1 ? P2 : P1;
+    const seatedSorc = ensureInHand(start.state, active, BOLT);
+    const seatedInst = ensureInHand(seatedSorc.state, opponent, INSTANT_BOLT);
+    const engine = start.engine;
+
+    let s: GameState = {
+      ...seatedInst.state,
+      players: {
+        ...seatedInst.state.players,
+        [active]: { ...seatedInst.state.players[active], manaPool: { W: 0, U: 0, B: 0, R: 1, G: 0, C: 1 } },
+        [opponent]: { ...seatedInst.state.players[opponent], manaPool: { W: 0, U: 0, B: 0, R: 1, G: 0, C: 0 } },
+      },
+    };
+
+    // Active casts Lightning Strike at the opponent (sorcery)
+    s = apply(engine, s, {
+      kind: 'cast_sorcery',
+      playerId: active,
+      cardId: seatedSorc.cardId,
+      manaSpent: { R: 1, C: 1 },
+      targets: [{ kind: 'player', playerId: opponent }],
+    });
+    expect(s.stack.length).toBe(1);
+
+    // Active passes priority to opponent
+    s = apply(engine, s, { kind: 'pass_priority', playerId: active });
+    expect(s.priorityPlayer).toBe(opponent);
+
+    // Opponent casts Lightning Bolt at the active player in response (instant)
+    s = apply(engine, s, {
+      kind: 'cast_instant',
+      playerId: opponent,
+      cardId: seatedInst.cardId,
+      manaSpent: { R: 1 },
+      targets: [{ kind: 'player', playerId: active }],
+    });
+    expect(s.stack.length).toBe(2);
+    // Both effects still pending — no life lost yet
+    expect(s.players[active].life).toBe(20);
+    expect(s.players[opponent].life).toBe(20);
+
+    // Both pass: top of stack (instant) resolves first
+    s = apply(engine, s, { kind: 'pass_priority', playerId: opponent });
+    s = apply(engine, s, { kind: 'pass_priority', playerId: active });
+    expect(s.stack.length).toBe(1);
+    expect(s.players[active].life).toBe(17); // instant resolved
+    expect(s.players[opponent].life).toBe(20); // sorcery still on stack
+
+    // Both pass again: sorcery resolves
+    s = apply(engine, s, { kind: 'pass_priority', playerId: active });
+    s = apply(engine, s, { kind: 'pass_priority', playerId: opponent });
+    expect(s.stack.length).toBe(0);
+    expect(s.players[opponent].life).toBe(17);
   });
 
   it('a creature with lethal combat damage dies via SBA', () => {

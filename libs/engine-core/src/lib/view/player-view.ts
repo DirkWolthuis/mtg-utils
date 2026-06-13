@@ -1,4 +1,5 @@
 import type { GameState } from '../model/game-state';
+import type { StackItem } from '../model/stack';
 import type { CardInstance, CardInstanceId, Player, PlayerId } from '../model/types';
 
 export interface OpponentView {
@@ -20,9 +21,11 @@ export interface PlayerView {
   turn: number;
   step: GameState['step'];
   activePlayer: PlayerId;
+  priorityPlayer: PlayerId | null;
   winner: PlayerId | null;
   combat: GameState['combat'];
   battlefield: CardInstanceId[];
+  stack: StackItem[];
   /** Card data: only includes cards the viewing player is allowed to see */
   cards: Record<CardInstanceId, CardInstance>;
   self: Player;
@@ -63,9 +66,11 @@ export const projectFor = (state: GameState, viewer: PlayerId): PlayerView => {
     turn: state.turn,
     step: state.step,
     activePlayer: state.activePlayer,
+    priorityPlayer: state.priorityPlayer,
     winner: state.winner,
     combat: state.combat,
     battlefield: state.battlefield.slice(),
+    stack: state.stack.slice(),
     cards,
     self,
     opponent,
