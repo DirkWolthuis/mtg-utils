@@ -2,12 +2,17 @@ import { getCardDefinition } from '../cards/catalog';
 import type { Action } from '../actions/action';
 import type { GameState } from '../model/game-state';
 import { otherPlayer } from '../model/game-state';
-import { STEP_ORDER } from '../model/types';
+import type { StackItem } from '../model/stack';
+import type { StackItemId } from '../model/types';
+import { STEP_ORDER, makeStackItemId } from '../model/types';
 import type { GameEvent } from './events';
 import { manaSpentMatchesCost, poolHasAtLeast, totalSpent } from './mana';
 import type { Result } from './result';
 import { err, ok } from './result';
-import { runEffect } from '../cards/effects/effect-registry';
+
+/** Deterministic per-game stack item id; safe because stack length is monotonic between casts. */
+const nextStackItemId = (state: GameState, cardId: string): StackItemId =>
+  makeStackItemId(`s-t${state.turn}-${state.stack.length + 1}-${cardId}`);
 
 const requireStep = (state: GameState, allowed: GameState['step'][]): string | null => {
   return allowed.includes(state.step)
@@ -18,6 +23,13 @@ const requireStep = (state: GameState, allowed: GameState['step'][]): string | n
 const requireActive = (state: GameState, playerId: GameState['activePlayer']): string | null => {
   return playerId === state.activePlayer ? null : `not active player's turn`;
 };
+
+/** Sorcery speed: caster is active player, has priority, in a main phase, with empty stack. */
+const sorcerySpeed = (state: GameState, playerId: GameState['activePlayer']): boolean =>
+  state.activePlayer === playerId &&
+  state.priorityPlayer === playerId &&
+  (state.step === 'main1' || state.step === 'main2') &&
+  state.stack.length === 0;
 
 export const validate = (
   state: GameState,
@@ -72,10 +84,7 @@ export const validate = (
     }
 
     case 'cast_creature': {
-      const step = requireStep(state, ['main1', 'main2']);
-      if (step) return err(step);
-      const active = requireActive(state, action.playerId);
-      if (active) return err(active);
+      if (!sorcerySpeed(state, action.playerId)) return err('cannot cast at sorcery speed right now');
       const card = state.cards[action.cardId];
       if (!card || card.zone !== 'hand' || card.ownerId !== action.playerId)
         return err('card not in your hand');
@@ -84,29 +93,28 @@ export const validate = (
       if (!def.manaCost) return err('no mana cost on creature');
       const costCheck = manaSpentMatchesCost(def.manaCost, action.manaSpent);
       if (!costCheck.ok) return err(costCheck.reason);
-      const poolCheck = poolHasAtLeast(
-        state.players[action.playerId].manaPool,
-        action.manaSpent,
-      );
+      const poolCheck = poolHasAtLeast(state.players[action.playerId].manaPool, action.manaSpent);
       if (!poolCheck.ok) return err(poolCheck.reason);
       if (totalSpent(action.manaSpent) === 0) return err('must spend mana for a non-free spell');
+
+      const item: StackItem = {
+        id: nextStackItemId(state, card.id),
+        controllerId: action.playerId,
+        cardId: card.id,
+        source: 'spell',
+        effects: [],
+        targets: [],
+        manaSpent: action.manaSpent,
+      };
       return ok<GameEvent[]>([
         { kind: 'mana_spent', playerId: action.playerId, spent: action.manaSpent },
-        {
-          kind: 'card_entered_zone',
-          cardId: card.id,
-          from: 'hand',
-          to: 'battlefield',
-          causedBy: action.playerId,
-        },
+        { kind: 'card_entered_zone', cardId: card.id, from: 'hand', to: 'stack', causedBy: action.playerId },
+        { kind: 'spell_put_on_stack', item },
       ]);
     }
 
     case 'cast_sorcery': {
-      const step = requireStep(state, ['main1', 'main2']);
-      if (step) return err(step);
-      const active = requireActive(state, action.playerId);
-      if (active) return err(active);
+      if (!sorcerySpeed(state, action.playerId)) return err('cannot cast at sorcery speed right now');
       const card = state.cards[action.cardId];
       if (!card || card.zone !== 'hand' || card.ownerId !== action.playerId)
         return err('card not in your hand');
@@ -115,10 +123,7 @@ export const validate = (
       if (!def.manaCost) return err('no mana cost on sorcery');
       const costCheck = manaSpentMatchesCost(def.manaCost, action.manaSpent);
       if (!costCheck.ok) return err(costCheck.reason);
-      const poolCheck = poolHasAtLeast(
-        state.players[action.playerId].manaPool,
-        action.manaSpent,
-      );
+      const poolCheck = poolHasAtLeast(state.players[action.playerId].manaPool, action.manaSpent);
       if (!poolCheck.ok) return err(poolCheck.reason);
 
       const effects = def.effects ?? [];
@@ -126,29 +131,20 @@ export const validate = (
       const targets = action.targets ?? [];
       if (targets.length < targetCount) return err(`spell needs ${targetCount} target(s)`);
 
-      const seed: GameEvent[] = [
+      const item: StackItem = {
+        id: nextStackItemId(state, card.id),
+        controllerId: action.playerId,
+        cardId: card.id,
+        source: 'spell',
+        effects,
+        targets: targets.slice(0, targetCount),
+        manaSpent: action.manaSpent,
+      };
+      return ok<GameEvent[]>([
         { kind: 'mana_spent', playerId: action.playerId, spent: action.manaSpent },
-        {
-          kind: 'card_entered_zone',
-          cardId: card.id,
-          from: 'hand',
-          to: 'graveyard',
-          causedBy: action.playerId,
-        },
-      ];
-      let targetIdx = 0;
-      for (const e of effects) {
-        const ctx = {
-          state,
-          casterId: action.playerId,
-          sourceCardId: card.id,
-          target: e.kind === 'deal_damage_to_any' ? targets[targetIdx++] : undefined,
-        };
-        const produced = runEffect(e, ctx);
-        if (!produced.ok) return err(produced.error);
-        seed.push(...produced.value);
-      }
-      return ok(seed);
+        { kind: 'card_entered_zone', cardId: card.id, from: 'hand', to: 'stack', causedBy: action.playerId },
+        { kind: 'spell_put_on_stack', item },
+      ]);
     }
 
     case 'declare_attackers': {
@@ -219,12 +215,13 @@ export const validate = (
       return ok(events);
     }
 
-    case 'pass_step': {
-      if (action.playerId !== state.activePlayer) return err('only active player passes in v0');
-      const idx = STEP_ORDER.indexOf(state.step);
-      const nextStep = STEP_ORDER[(idx + 1) % STEP_ORDER.length];
+    case 'pass_priority': {
+      if (state.priorityPlayer !== action.playerId) {
+        return err(`player ${action.playerId} does not have priority`);
+      }
+      const to = otherPlayer(state, action.playerId);
       return ok<GameEvent[]>([
-        { kind: 'step_advanced', from: state.step, to: nextStep, turn: state.turn },
+        { kind: 'priority_passed', from: action.playerId, to },
       ]);
     }
 

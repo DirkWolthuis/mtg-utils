@@ -310,7 +310,7 @@ const main = async (): Promise<void> => {
       submit({ kind: 'declare_blockers', playerId, assignments });
     },
     /** Pass to the next step. */
-    pass: () => submit({ kind: 'pass_step', playerId }),
+    pass: () => submit({ kind: 'pass_priority', playerId }),
     /** Concede the game. */
     concede: () => submit({ kind: 'concede', playerId }),
     /** Print the helper list. */

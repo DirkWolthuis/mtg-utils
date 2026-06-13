@@ -41,8 +41,8 @@ export interface DeclareBlockers {
   assignments: { blockerId: CardInstanceId; attackerId: CardInstanceId }[];
 }
 
-export interface PassStep {
-  kind: 'pass_step';
+export interface PassPriority {
+  kind: 'pass_priority';
   playerId: PlayerId;
 }
 
@@ -58,7 +58,7 @@ export type Action =
   | CastSorcery
   | DeclareAttackers
   | DeclareBlockers
-  | PassStep
+  | PassPriority
   | Concede;
 
 export type ActionKind = Action['kind'];

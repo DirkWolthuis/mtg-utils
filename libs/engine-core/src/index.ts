@@ -19,4 +19,6 @@ export * from './lib/engine/default-engine';
 export * from './lib/engine/state-based-actions';
 export * from './lib/engine/phases/advance-step';
 export * from './lib/engine/phases/combat';
+export * from './lib/engine/stack/resolve';
+export * from './lib/engine/stack/priority';
 export * from './lib/view/player-view';
