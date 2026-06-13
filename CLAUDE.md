@@ -15,24 +15,25 @@ Path aliases (set in `tsconfig.base.json`): `@mtg-utils/engine-core`, `@mtg-util
 
 ## Common commands
 
+The most-used flows are wrapped as npm scripts; everything below also has a direct `npx nx …` equivalent.
+
 ```sh
-# Build (tsc for libs, esbuild for engine-server)
-npx nx run engine-core:build
-npx nx run engine-protocol:build
-npx nx run engine-server:build
-npx nx run-many -t build -p engine-core engine-protocol engine-server
+npm run build           # build all three engine projects
+npm test                # vitest across engine-core + engine-server
+npm run serve           # nx serve engine-server (ws://localhost:8080; override PORT)
+npm run repl -- --player p1 --name Alice --game g1
+npm run repl:p1         # shortcut: REPL as p1/Alice/g1
+npm run repl:p2         # shortcut: REPL as p2/Bob/g1
+npm run serve:trader    # the Angular mtg-trader app (unrelated to the engine)
+```
 
-# Test (vitest — both projects have an Nx-inferred `test` target via their vitest.config.mts)
-npx nx run engine-core:test
-npx nx run engine-server:test                        # runs the 2-client WS smoke spec
+Direct Nx forms (use these for narrower targets):
+
+```sh
+npx nx run engine-core:test                          # one project
 npx nx run engine-core:test -- -t "summoning-sick"   # single test by name
-
-# Serve engine-server (defaults to ws://localhost:8080; override with PORT)
-npx nx serve engine-server
-
-# Interactive REPL for hand-driving a game against a running server (one terminal per player)
-npx nx run engine-server:repl -- --player p1 --name Alice --game g1
-npx nx run engine-server:repl -- --player p2 --name Bob   --game g1
+npx nx run engine-server:test                        # runs the 2-client WS smoke spec
+npx nx run engine-server:build                       # esbuild bundle for engine-server only
 ```
 
 In the REPL, `help()` prints the action shortcuts (`play("forest")`, `tap("forest", "G")`, `play("strike", { target: "opp" })`, `attack(["bears"])`, `block([["bears", "giant"]])`, `pass()`, `concede()`); `me()`/`hand()`/`bf()` print the current view.
