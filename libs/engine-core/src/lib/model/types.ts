@@ -2,11 +2,13 @@ export type PlayerId = string & { readonly __brand: 'PlayerId' };
 export type CardInstanceId = string & { readonly __brand: 'CardInstanceId' };
 export type CardDefinitionId = string & { readonly __brand: 'CardDefinitionId' };
 export type GameId = string & { readonly __brand: 'GameId' };
+export type StackItemId = string & { readonly __brand: 'StackItemId' };
 
 export const makePlayerId = (s: string): PlayerId => s as PlayerId;
 export const makeCardInstanceId = (s: string): CardInstanceId => s as CardInstanceId;
 export const makeCardDefinitionId = (s: string): CardDefinitionId => s as CardDefinitionId;
 export const makeGameId = (s: string): GameId => s as GameId;
+export const makeStackItemId = (s: string): StackItemId => s as StackItemId;
 
 export type ManaColor = 'W' | 'U' | 'B' | 'R' | 'G' | 'C';
 
@@ -49,6 +51,14 @@ export type CardType =
   | 'enchantment'
   | 'artifact'
   | 'planeswalker';
+
+export const isSpellType = (type: CardType): boolean =>
+  type === 'creature' ||
+  type === 'instant' ||
+  type === 'sorcery' ||
+  type === 'enchantment' ||
+  type === 'artifact' ||
+  type === 'planeswalker';
 
 export type SuperType = 'basic' | 'legendary' | 'snow';
 

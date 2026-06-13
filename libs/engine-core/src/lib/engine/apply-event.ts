@@ -66,6 +66,7 @@ export const applyEvent = (state: GameState, event: GameEvent): GameState => {
       if (event.to === 'battlefield') {
         battlefield = [...battlefield, event.cardId];
       } else if (event.to !== 'stack') {
+        // 'stack' is tracked via state.stack; nothing to add to per-player zones.
         Object.assign(ownerPatch, addToZone(owner, event.cardId, event.to));
       }
 
@@ -142,6 +143,23 @@ export const applyEvent = (state: GameState, event: GameEvent): GameState => {
         landsPlayedThisTurn: p.landsPlayedThisTurn + 1,
       });
     }
+
+    case 'spell_put_on_stack':
+      return { ...state, stack: [...state.stack, event.item], consecutivePasses: 0 };
+
+    case 'stack_item_resolved': {
+      const idx = state.stack.findIndex((s) => s.id === event.stackItemId);
+      if (idx < 0) return state;
+      const stack = state.stack.slice();
+      stack.splice(idx, 1);
+      return { ...state, stack, consecutivePasses: 0 };
+    }
+
+    case 'priority_passed':
+      return { ...state, priorityPlayer: event.to, consecutivePasses: state.consecutivePasses + 1 };
+
+    case 'priority_reset':
+      return { ...state, priorityPlayer: event.to, consecutivePasses: 0 };
 
     case 'creature_died':
       return state;

@@ -1,7 +1,9 @@
+import type { StackItem } from '../model/stack';
 import type {
   CardInstanceId,
   ManaColor,
   PlayerId,
+  StackItemId,
   Step,
   Zone,
 } from '../model/types';
@@ -77,6 +79,29 @@ export interface LandPlayed {
   cardId: CardInstanceId;
 }
 
+export interface SpellPutOnStack {
+  kind: 'spell_put_on_stack';
+  item: StackItem;
+}
+
+export interface StackItemResolved {
+  kind: 'stack_item_resolved';
+  stackItemId: StackItemId;
+}
+
+export interface PriorityPassed {
+  kind: 'priority_passed';
+  from: PlayerId;
+  to: PlayerId;
+}
+
+export interface PriorityReset {
+  kind: 'priority_reset';
+  to: PlayerId;
+  /** Why priority was reset (state change on stack, step transition). */
+  reason: 'stack_changed' | 'step_started';
+}
+
 export interface CreatureDied {
   kind: 'creature_died';
   cardId: CardInstanceId;
@@ -148,6 +173,10 @@ export type GameEvent =
   | CardDrawn
   | DrawAttemptedEmpty
   | LandPlayed
+  | SpellPutOnStack
+  | StackItemResolved
+  | PriorityPassed
+  | PriorityReset
   | CreatureDied
   | AttackerDeclared
   | BlockerDeclared

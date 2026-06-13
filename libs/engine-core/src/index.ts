@@ -1,4 +1,5 @@
 export * from './lib/model/types';
+export * from './lib/model/stack';
 export * from './lib/model/game-state';
 export * from './lib/cards/card-definition';
 export * from './lib/cards/effects/effect-types';
