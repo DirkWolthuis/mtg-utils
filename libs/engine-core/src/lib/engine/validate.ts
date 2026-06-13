@@ -31,6 +31,59 @@ const sorcerySpeed = (state: GameState, playerId: GameState['activePlayer']): bo
   (state.step === 'main1' || state.step === 'main2') &&
   state.stack.length === 0;
 
+/** Instant speed: caster has priority. That's it. */
+const instantSpeed = (state: GameState, playerId: GameState['activePlayer']): boolean =>
+  state.priorityPlayer === playerId;
+
+const castNonPermanentSpell = (
+  state: GameState,
+  action: {
+    playerId: GameState['activePlayer'];
+    cardId: import('../model/types').CardInstanceId;
+    manaSpent: Partial<Record<import('../model/types').ManaColor, number>>;
+    targets?: import('../cards/effects/effect-types').EffectTarget[];
+  },
+  requiredType: 'sorcery' | 'instant',
+  atInstantSpeed: boolean,
+): Result<GameEvent[], string> => {
+  if (atInstantSpeed) {
+    if (!instantSpeed(state, action.playerId)) return err('you do not have priority');
+  } else {
+    if (!sorcerySpeed(state, action.playerId))
+      return err('cannot cast at sorcery speed right now');
+  }
+  const card = state.cards[action.cardId];
+  if (!card || card.zone !== 'hand' || card.ownerId !== action.playerId)
+    return err('card not in your hand');
+  const def = getCardDefinition(card.definitionId);
+  if (!def.types.includes(requiredType)) return err(`not a ${requiredType}`);
+  if (!def.manaCost) return err(`no mana cost on ${requiredType}`);
+  const costCheck = manaSpentMatchesCost(def.manaCost, action.manaSpent);
+  if (!costCheck.ok) return err(costCheck.reason);
+  const poolCheck = poolHasAtLeast(state.players[action.playerId].manaPool, action.manaSpent);
+  if (!poolCheck.ok) return err(poolCheck.reason);
+
+  const effects = def.effects ?? [];
+  const targetCount = effects.filter((e) => e.kind === 'deal_damage_to_any').length;
+  const targets = action.targets ?? [];
+  if (targets.length < targetCount) return err(`spell needs ${targetCount} target(s)`);
+
+  const item: StackItem = {
+    id: nextStackItemId(state, card.id),
+    controllerId: action.playerId,
+    cardId: card.id,
+    source: 'spell',
+    effects,
+    targets: targets.slice(0, targetCount),
+    manaSpent: action.manaSpent,
+  };
+  return ok<GameEvent[]>([
+    { kind: 'mana_spent', playerId: action.playerId, spent: action.manaSpent },
+    { kind: 'card_entered_zone', cardId: card.id, from: 'hand', to: 'stack', causedBy: action.playerId },
+    { kind: 'spell_put_on_stack', item },
+  ]);
+};
+
 export const validate = (
   state: GameState,
   action: Action,
@@ -113,39 +166,11 @@ export const validate = (
       ]);
     }
 
-    case 'cast_sorcery': {
-      if (!sorcerySpeed(state, action.playerId)) return err('cannot cast at sorcery speed right now');
-      const card = state.cards[action.cardId];
-      if (!card || card.zone !== 'hand' || card.ownerId !== action.playerId)
-        return err('card not in your hand');
-      const def = getCardDefinition(card.definitionId);
-      if (!def.types.includes('sorcery')) return err('not a sorcery');
-      if (!def.manaCost) return err('no mana cost on sorcery');
-      const costCheck = manaSpentMatchesCost(def.manaCost, action.manaSpent);
-      if (!costCheck.ok) return err(costCheck.reason);
-      const poolCheck = poolHasAtLeast(state.players[action.playerId].manaPool, action.manaSpent);
-      if (!poolCheck.ok) return err(poolCheck.reason);
+    case 'cast_sorcery':
+      return castNonPermanentSpell(state, action, 'sorcery', /*instantSpeed*/ false);
 
-      const effects = def.effects ?? [];
-      const targetCount = effects.filter((e) => e.kind === 'deal_damage_to_any').length;
-      const targets = action.targets ?? [];
-      if (targets.length < targetCount) return err(`spell needs ${targetCount} target(s)`);
-
-      const item: StackItem = {
-        id: nextStackItemId(state, card.id),
-        controllerId: action.playerId,
-        cardId: card.id,
-        source: 'spell',
-        effects,
-        targets: targets.slice(0, targetCount),
-        manaSpent: action.manaSpent,
-      };
-      return ok<GameEvent[]>([
-        { kind: 'mana_spent', playerId: action.playerId, spent: action.manaSpent },
-        { kind: 'card_entered_zone', cardId: card.id, from: 'hand', to: 'stack', causedBy: action.playerId },
-        { kind: 'spell_put_on_stack', item },
-      ]);
-    }
+    case 'cast_instant':
+      return castNonPermanentSpell(state, action, 'instant', /*instantSpeed*/ true);
 
     case 'declare_attackers': {
       if (state.step !== 'declare_attackers') return err('not declare attackers step');

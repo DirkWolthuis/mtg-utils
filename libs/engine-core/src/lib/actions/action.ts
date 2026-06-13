@@ -29,6 +29,14 @@ export interface CastSorcery {
   targets?: EffectTarget[];
 }
 
+export interface CastInstant {
+  kind: 'cast_instant';
+  playerId: PlayerId;
+  cardId: CardInstanceId;
+  manaSpent: Partial<Record<ManaColor, number>>;
+  targets?: EffectTarget[];
+}
+
 export interface DeclareAttackers {
   kind: 'declare_attackers';
   playerId: PlayerId;
@@ -56,6 +64,7 @@ export type Action =
   | PlayLand
   | CastCreature
   | CastSorcery
+  | CastInstant
   | DeclareAttackers
   | DeclareBlockers
   | PassPriority

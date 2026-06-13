@@ -7,6 +7,7 @@ import { mountain } from './mountain';
 import { grizzlyBears } from './grizzly-bears';
 import { hillGiant } from './hill-giant';
 import { lightningStrike } from './lightning-strike';
+import { lightningBolt } from './lightning-bolt';
 import { healingSalve } from './healing-salve';
 
 const list: CardDefinition[] = [
@@ -15,6 +16,7 @@ const list: CardDefinition[] = [
   grizzlyBears,
   hillGiant,
   lightningStrike,
+  lightningBolt,
   healingSalve,
 ];
 
@@ -30,4 +32,4 @@ export const getCardDefinition = (id: CardDefinitionId): CardDefinition => {
 
 export const defId = (s: string): CardDefinitionId => makeCardDefinitionId(s);
 
-export { forest, mountain, grizzlyBears, hillGiant, lightningStrike, healingSalve };
+export { forest, mountain, grizzlyBears, hillGiant, lightningStrike, lightningBolt, healingSalve };
