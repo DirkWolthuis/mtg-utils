@@ -246,6 +246,24 @@ describe('engine', () => {
     expect(s.stack.length).toBe(0);
   });
 
+  it('drawn cards appear in the projected view (no zone drift)', () => {
+    const { state, engine } = startBasicGame();
+    const active = state.activePlayer;
+
+    // Drive a card_drawn event directly. Choose the top of the library.
+    const drawnId = state.players[active].library[0]!;
+    const result = engine.drain(state, [
+      { kind: 'card_drawn', playerId: active, cardId: drawnId },
+    ]);
+    expect(result.state.cards[drawnId].zone).toBe('hand');
+    expect(result.state.players[active].hand).toContain(drawnId);
+
+    // And the projected view should include the card so hand() can read its definition.
+    // (Using direct import would couple the spec to view; just assert the underlying
+    // state, which is what projectFor reads.)
+    expect(result.state.cards[drawnId]).toBeDefined();
+  });
+
   it('stack resolves LIFO: instant cast in response to a sorcery resolves first', () => {
     const start = startBasicGame();
     const active = start.state.activePlayer;

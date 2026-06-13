@@ -128,10 +128,11 @@ export const applyEvent = (state: GameState, event: GameEvent): GameState => {
 
     case 'card_drawn': {
       const p = state.players[event.playerId];
-      return updatePlayer(state, event.playerId, {
+      const moved = updatePlayer(state, event.playerId, {
         library: p.library.slice(1),
         hand: [...p.hand, event.cardId],
       });
+      return updateCard(moved, event.cardId, { zone: 'hand' });
     }
 
     case 'draw_attempted_empty':
