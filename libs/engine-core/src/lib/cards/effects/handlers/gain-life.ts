@@ -1,6 +1,6 @@
 import type { GainLife } from '../effect-types';
 import type { EffectHandler } from '../effect-registry';
-import { ok } from '../../../engine/result';
+import { ok } from '@mtg-utils/engine-util';
 
 export const gainLife: EffectHandler<GainLife> = (effect, ctx) =>
   ok([

@@ -1,14 +1,13 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "../../dist/out-tsc/libs/engine-core",
-    "tsBuildInfoFile": "../../dist/out-tsc/libs/engine-core/.tsbuildinfo",
+    "outDir": "../../dist/out-tsc/libs/engine-util",
+    "tsBuildInfoFile": "../../dist/out-tsc/libs/engine-util/.tsbuildinfo",
     "declaration": true,
     "composite": true,
     "rootDir": "src",
     "types": ["node"]
   },
-  "references": [{ "path": "../engine-util/tsconfig.lib.json" }],
   "include": ["src/**/*.ts"],
   "exclude": [
     "vite.config.ts",

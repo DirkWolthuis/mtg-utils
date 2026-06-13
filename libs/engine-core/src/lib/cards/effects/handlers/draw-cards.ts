@@ -1,7 +1,7 @@
 import type { DrawCards } from '../effect-types';
 import type { EffectHandler } from '../effect-registry';
 import type { GameEvent } from '../../../engine/events';
-import { ok } from '../../../engine/result';
+import { ok } from '@mtg-utils/engine-util';
 
 export const drawCards: EffectHandler<DrawCards> = (effect, ctx) => {
   const events: GameEvent[] = [];

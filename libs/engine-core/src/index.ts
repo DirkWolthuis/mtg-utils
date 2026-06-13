@@ -14,7 +14,6 @@ export * from './lib/engine/event-bus';
 export * from './lib/engine/apply-event';
 export * from './lib/engine/validate';
 export * from './lib/engine/run';
-export * from './lib/engine/result';
 export * from './lib/engine/default-engine';
 export * from './lib/engine/state-based-actions';
 export * from './lib/engine/phases/advance-step';

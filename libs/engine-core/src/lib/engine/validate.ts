@@ -4,36 +4,47 @@ import type { GameState } from '../model/game-state';
 import { otherPlayer } from '../model/game-state';
 import type { StackItem } from '../model/stack';
 import type { StackItemId } from '../model/types';
-import { STEP_ORDER, makeStackItemId } from '../model/types';
+import { makeStackItemId } from '../model/types';
 import type { GameEvent } from './events';
 import { manaSpentMatchesCost, poolHasAtLeast, totalSpent } from './mana';
-import type { Result } from './result';
-import { err, ok } from './result';
+import type { Result } from '@mtg-utils/engine-util';
+import { err, ok } from '@mtg-utils/engine-util';
 
 /** Deterministic per-game stack item id; safe because stack length is monotonic between casts. */
 const nextStackItemId = (state: GameState, cardId: string): StackItemId =>
   makeStackItemId(`s-t${state.turn}-${state.stack.length + 1}-${cardId}`);
 
-const requireStep = (state: GameState, allowed: GameState['step'][]): string | null => {
+const requireStep = (
+  state: GameState,
+  allowed: GameState['step'][],
+): string | null => {
   return allowed.includes(state.step)
     ? null
     : `action not legal during step ${state.step}; expected one of ${allowed.join(', ')}`;
 };
 
-const requireActive = (state: GameState, playerId: GameState['activePlayer']): string | null => {
+const requireActive = (
+  state: GameState,
+  playerId: GameState['activePlayer'],
+): string | null => {
   return playerId === state.activePlayer ? null : `not active player's turn`;
 };
 
 /** Sorcery speed: caster is active player, has priority, in a main phase, with empty stack. */
-const sorcerySpeed = (state: GameState, playerId: GameState['activePlayer']): boolean =>
+const sorcerySpeed = (
+  state: GameState,
+  playerId: GameState['activePlayer'],
+): boolean =>
   state.activePlayer === playerId &&
   state.priorityPlayer === playerId &&
   (state.step === 'main1' || state.step === 'main2') &&
   state.stack.length === 0;
 
 /** Instant speed: caster has priority. That's it. */
-const instantSpeed = (state: GameState, playerId: GameState['activePlayer']): boolean =>
-  state.priorityPlayer === playerId;
+const instantSpeed = (
+  state: GameState,
+  playerId: GameState['activePlayer'],
+): boolean => state.priorityPlayer === playerId;
 
 const castNonPermanentSpell = (
   state: GameState,
@@ -47,7 +58,8 @@ const castNonPermanentSpell = (
   atInstantSpeed: boolean,
 ): Result<GameEvent[], string> => {
   if (atInstantSpeed) {
-    if (!instantSpeed(state, action.playerId)) return err('you do not have priority');
+    if (!instantSpeed(state, action.playerId))
+      return err('you do not have priority');
   } else {
     if (!sorcerySpeed(state, action.playerId))
       return err('cannot cast at sorcery speed right now');
@@ -60,13 +72,19 @@ const castNonPermanentSpell = (
   if (!def.manaCost) return err(`no mana cost on ${requiredType}`);
   const costCheck = manaSpentMatchesCost(def.manaCost, action.manaSpent);
   if (!costCheck.ok) return err(costCheck.reason);
-  const poolCheck = poolHasAtLeast(state.players[action.playerId].manaPool, action.manaSpent);
+  const poolCheck = poolHasAtLeast(
+    state.players[action.playerId].manaPool,
+    action.manaSpent,
+  );
   if (!poolCheck.ok) return err(poolCheck.reason);
 
   const effects = def.effects ?? [];
-  const targetCount = effects.filter((e) => e.kind === 'deal_damage_to_any').length;
+  const targetCount = effects.filter(
+    (e) => e.kind === 'deal_damage_to_any',
+  ).length;
   const targets = action.targets ?? [];
-  if (targets.length < targetCount) return err(`spell needs ${targetCount} target(s)`);
+  if (targets.length < targetCount)
+    return err(`spell needs ${targetCount} target(s)`);
 
   const item: StackItem = {
     id: nextStackItemId(state, card.id),
@@ -79,7 +97,13 @@ const castNonPermanentSpell = (
   };
   return ok<GameEvent[]>([
     { kind: 'mana_spent', playerId: action.playerId, spent: action.manaSpent },
-    { kind: 'card_entered_zone', cardId: card.id, from: 'hand', to: 'stack', causedBy: action.playerId },
+    {
+      kind: 'card_entered_zone',
+      cardId: card.id,
+      from: 'hand',
+      to: 'stack',
+      causedBy: action.playerId,
+    },
     { kind: 'spell_put_on_stack', item },
   ]);
 };
@@ -95,11 +119,13 @@ export const validate = (
       const card = state.cards[action.cardId];
       if (!card) return err('unknown card');
       if (card.zone !== 'battlefield') return err('card not on battlefield');
-      if (card.controllerId !== action.playerId) return err('not your permanent');
+      if (card.controllerId !== action.playerId)
+        return err('not your permanent');
       if (card.tapped) return err('card already tapped');
       const def = getCardDefinition(card.definitionId);
       if (!def.types.includes('land')) return err('not a land');
-      if (!def.produces?.includes(action.color)) return err(`land cannot produce ${action.color}`);
+      if (!def.produces?.includes(action.color))
+        return err(`land cannot produce ${action.color}`);
       return ok([
         { kind: 'permanent_tapped', cardId: card.id },
         {
@@ -118,7 +144,8 @@ export const validate = (
       const active = requireActive(state, action.playerId);
       if (active) return err(active);
       const player = state.players[action.playerId];
-      if (player.landsPlayedThisTurn >= 1) return err('already played a land this turn');
+      if (player.landsPlayedThisTurn >= 1)
+        return err('already played a land this turn');
       const card = state.cards[action.cardId];
       if (!card || card.zone !== 'hand' || card.ownerId !== action.playerId)
         return err('card not in your hand');
@@ -137,7 +164,8 @@ export const validate = (
     }
 
     case 'cast_creature': {
-      if (!sorcerySpeed(state, action.playerId)) return err('cannot cast at sorcery speed right now');
+      if (!sorcerySpeed(state, action.playerId))
+        return err('cannot cast at sorcery speed right now');
       const card = state.cards[action.cardId];
       if (!card || card.zone !== 'hand' || card.ownerId !== action.playerId)
         return err('card not in your hand');
@@ -146,9 +174,13 @@ export const validate = (
       if (!def.manaCost) return err('no mana cost on creature');
       const costCheck = manaSpentMatchesCost(def.manaCost, action.manaSpent);
       if (!costCheck.ok) return err(costCheck.reason);
-      const poolCheck = poolHasAtLeast(state.players[action.playerId].manaPool, action.manaSpent);
+      const poolCheck = poolHasAtLeast(
+        state.players[action.playerId].manaPool,
+        action.manaSpent,
+      );
       if (!poolCheck.ok) return err(poolCheck.reason);
-      if (totalSpent(action.manaSpent) === 0) return err('must spend mana for a non-free spell');
+      if (totalSpent(action.manaSpent) === 0)
+        return err('must spend mana for a non-free spell');
 
       const item: StackItem = {
         id: nextStackItemId(state, card.id),
@@ -160,20 +192,41 @@ export const validate = (
         manaSpent: action.manaSpent,
       };
       return ok<GameEvent[]>([
-        { kind: 'mana_spent', playerId: action.playerId, spent: action.manaSpent },
-        { kind: 'card_entered_zone', cardId: card.id, from: 'hand', to: 'stack', causedBy: action.playerId },
+        {
+          kind: 'mana_spent',
+          playerId: action.playerId,
+          spent: action.manaSpent,
+        },
+        {
+          kind: 'card_entered_zone',
+          cardId: card.id,
+          from: 'hand',
+          to: 'stack',
+          causedBy: action.playerId,
+        },
         { kind: 'spell_put_on_stack', item },
       ]);
     }
 
     case 'cast_sorcery':
-      return castNonPermanentSpell(state, action, 'sorcery', /*instantSpeed*/ false);
+      return castNonPermanentSpell(
+        state,
+        action,
+        'sorcery',
+        /*instantSpeed*/ false,
+      );
 
     case 'cast_instant':
-      return castNonPermanentSpell(state, action, 'instant', /*instantSpeed*/ true);
+      return castNonPermanentSpell(
+        state,
+        action,
+        'instant',
+        /*instantSpeed*/ true,
+      );
 
     case 'declare_attackers': {
-      if (state.step !== 'declare_attackers') return err('not declare attackers step');
+      if (state.step !== 'declare_attackers')
+        return err('not declare attackers step');
       const active = requireActive(state, action.playerId);
       if (active) return err(active);
       const defender = otherPlayer(state, action.playerId);
@@ -183,17 +236,26 @@ export const validate = (
         if (seen.has(id)) return err('duplicate attacker');
         seen.add(id);
         const c = state.cards[id];
-        if (!c || c.zone !== 'battlefield' || c.controllerId !== action.playerId)
+        if (
+          !c ||
+          c.zone !== 'battlefield' ||
+          c.controllerId !== action.playerId
+        )
           return err('cannot attack with that card');
         const def = getCardDefinition(c.definitionId);
-        if (!def.types.includes('creature')) return err('only creatures can attack');
+        if (!def.types.includes('creature'))
+          return err('only creatures can attack');
         if (c.tapped) return err('tapped creatures cannot attack');
         if (c.summoningSick && !def.keywords.includes('haste'))
           return err('summoning sick creature cannot attack');
         if (!def.keywords.includes('vigilance')) {
           events.push({ kind: 'permanent_tapped', cardId: id });
         }
-        events.push({ kind: 'attacker_declared', attackerId: id, defenderId: defender });
+        events.push({
+          kind: 'attacker_declared',
+          attackerId: id,
+          defenderId: defender,
+        });
       }
       events.push({
         kind: 'step_advanced',
@@ -205,11 +267,15 @@ export const validate = (
     }
 
     case 'declare_blockers': {
-      if (state.step !== 'declare_blockers') return err('not declare blockers step');
+      if (state.step !== 'declare_blockers')
+        return err('not declare blockers step');
       const defender = otherPlayer(state, state.activePlayer);
-      if (action.playerId !== defender) return err('only defending player declares blockers');
+      if (action.playerId !== defender)
+        return err('only defending player declares blockers');
       const events: GameEvent[] = [];
-      const attackerIds = new Set(state.combat.attackers.map((a) => a.attackerId));
+      const attackerIds = new Set(
+        state.combat.attackers.map((a) => a.attackerId),
+      );
       const usedBlockers = new Set<string>();
       for (const a of action.assignments) {
         if (!attackerIds.has(a.attackerId)) return err('not an attacker');
@@ -219,7 +285,8 @@ export const validate = (
         if (!b || b.zone !== 'battlefield' || b.controllerId !== defender)
           return err('cannot block with that card');
         const bd = getCardDefinition(b.definitionId);
-        if (!bd.types.includes('creature')) return err('only creatures can block');
+        if (!bd.types.includes('creature'))
+          return err('only creatures can block');
         if (b.tapped) return err('tapped creatures cannot block');
         const attacker = state.cards[a.attackerId];
         const ad = getCardDefinition(attacker.definitionId);

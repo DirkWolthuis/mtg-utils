@@ -1,0 +1,19 @@
+{
+  "name": "engine-util",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/engine-util/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/engine-util",
+        "main": "libs/engine-util/src/index.ts",
+        "tsConfig": "libs/engine-util/tsconfig.lib.json",
+        "assets": ["libs/engine-util/*.md"]
+      }
+    }
+  }
+}

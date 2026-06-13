@@ -1,7 +1,7 @@
 import type { DealDamageToAny } from '../effect-types';
 import type { EffectContext, EffectHandler } from '../effect-registry';
 import type { GameEvent } from '../../../engine/events';
-import { err, ok } from '../../../engine/result';
+import { err, ok } from '@mtg-utils/engine-util';
 
 export const dealDamageToAny: EffectHandler<DealDamageToAny> = (
   effect,

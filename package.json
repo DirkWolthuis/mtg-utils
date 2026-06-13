@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "build": "nx run-many -t build -p engine-core engine-protocol engine-server",
-    "test": "nx run-many -t test -p engine-core engine-server",
+    "build": "nx run-many -t build -p engine-util engine-core engine-protocol engine-server",
+    "test": "nx run-many -t test -p engine-util engine-core engine-server",
     "serve": "nx serve engine-server",
     "serve:trader": "nx serve mtg-trader",
     "repl": "nx run engine-server:repl --",

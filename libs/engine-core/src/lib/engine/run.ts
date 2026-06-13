@@ -4,7 +4,7 @@ import { applyEvent } from './apply-event';
 import type { EventBus } from './event-bus';
 import { createEventBus } from './event-bus';
 import type { GameEvent } from './events';
-import type { Result } from './result';
+import type { Result } from '@mtg-utils/engine-util';
 import { validate } from './validate';
 
 export interface ApplyResult {
