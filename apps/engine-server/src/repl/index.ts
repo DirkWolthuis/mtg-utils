@@ -149,38 +149,15 @@ const main = async (): Promise<void> => {
     return view;
   };
 
-  const findInHand = (needle: string): CardInstanceId | undefined => {
+  /** Resolve a string into a CardInstanceId, validating it exists in the current view. */
+  const asCardId = (id: string): CardInstanceId | undefined => {
     const v = view;
     if (!v) return undefined;
-    const lowered = needle.toLowerCase();
-    for (const id of v.self.hand) {
-      const c = v.cards[id];
-      if (!c) continue;
-      const def = getCardDefinition(c.definitionId);
-      if (def.name.toLowerCase().includes(lowered) || c.definitionId.toLowerCase().includes(lowered)) {
-        return id;
-      }
+    if (!v.cards[id as CardInstanceId]) {
+      console.log(`unknown card id "${id}" — try hand() or bf() to see ids`);
+      return undefined;
     }
-    return undefined;
-  };
-
-  const findOnBattlefield = (
-    needle: string,
-    onlyMine = true,
-  ): CardInstanceId | undefined => {
-    const v = view;
-    if (!v) return undefined;
-    const lowered = needle.toLowerCase();
-    for (const id of v.battlefield) {
-      const c = v.cards[id];
-      if (!c) continue;
-      if (onlyMine && c.controllerId !== v.forPlayer) continue;
-      const def = getCardDefinition(c.definitionId);
-      if (def.name.toLowerCase().includes(lowered) || c.definitionId.toLowerCase().includes(lowered)) {
-        return id;
-      }
-    }
-    return undefined;
+    return id as CardInstanceId;
   };
 
   const helpers = {
@@ -188,7 +165,7 @@ const main = async (): Promise<void> => {
     state: () => view,
     /** Latest incoming server message. */
     last: () => lastMessage,
-    /** Pretty list of cards in your hand. */
+    /** Print your hand (id, name). */
     hand: () => {
       const v = requireView();
       if (!v) return;
@@ -199,7 +176,7 @@ const main = async (): Promise<void> => {
         })),
       );
     },
-    /** Pretty list of your battlefield (or both with `bf(false)`). */
+    /** Print the battlefield (default: yours only; pass `false` for both). */
     bf: (mineOnly = true) => {
       const v = requireView();
       if (!v) return;
@@ -231,13 +208,46 @@ const main = async (): Promise<void> => {
         v.self.manaPool,
       );
     },
-    /** Play a land, cast a creature, or cast a sorcery (auto-detects card type). */
-    play: (name: string, opts?: { target?: 'opp' | 'me' | string }) => {
+    /**
+     * Discovery helper: list every card across hand + battlefield whose card name
+     * or definition id contains `needle` (case-insensitive). Useful for finding the
+     * id to pass to other helpers when you only know the card's name.
+     */
+    find: (needle: string) => {
+      const v = requireView();
+      if (!v) return [];
+      const lowered = needle.toLowerCase();
+      const rows: { zone: string; id: CardInstanceId; name: string; ctrl?: PlayerId; tapped?: boolean }[] = [];
+      const match = (defId: string, name: string) =>
+        name.toLowerCase().includes(lowered) || defId.toLowerCase().includes(lowered);
+      for (const id of v.self.hand) {
+        const c = v.cards[id]!;
+        const def = getCardDefinition(c.definitionId);
+        if (match(c.definitionId, def.name)) rows.push({ zone: 'hand', id, name: def.name });
+      }
+      for (const id of v.battlefield) {
+        const c = v.cards[id]!;
+        const def = getCardDefinition(c.definitionId);
+        if (match(c.definitionId, def.name))
+          rows.push({ zone: 'battlefield', id, name: def.name, ctrl: c.controllerId, tapped: c.tapped });
+      }
+      console.table(rows);
+      return rows.map((r) => r.id);
+    },
+    /**
+     * Play a card from your hand by id. Auto-detects land / creature / sorcery.
+     * For sorceries, pass `{ target: <playerId> | "opp" | "me" }` (defaults to opponent).
+     */
+    play: (cardId: string, opts?: { target?: string }) => {
       const v = requireView();
       if (!v) return;
-      const id = findInHand(name);
-      if (!id) return console.log(`no card matching "${name}" in hand`);
-      const def = getCardDefinition(v.cards[id]!.definitionId);
+      const id = asCardId(cardId);
+      if (!id) return;
+      const c = v.cards[id]!;
+      if (c.zone !== 'hand' || c.ownerId !== v.forPlayer) {
+        return console.log(`card ${id} is not in your hand (zone=${c.zone})`);
+      }
+      const def = getCardDefinition(c.definitionId);
       if (def.types.includes('land')) {
         submit({ kind: 'play_land', playerId, cardId: id });
         return;
@@ -248,48 +258,55 @@ const main = async (): Promise<void> => {
         return;
       }
       if (def.types.includes('sorcery')) {
-        const targetPlayer =
-          opts?.target === 'me' ? v.forPlayer : (v.opponent.id as PlayerId);
+        const targetPlayer: PlayerId =
+          opts?.target === 'me'
+            ? v.forPlayer
+            : opts?.target === undefined || opts.target === 'opp'
+              ? (v.opponent.id as PlayerId)
+              : (opts.target as PlayerId);
         const targets = (def.effects ?? [])
           .filter((e) => e.kind === 'deal_damage_to_any')
           .map(() => ({ kind: 'player' as const, playerId: targetPlayer }));
-        submit({
-          kind: 'cast_sorcery',
-          playerId,
-          cardId: id,
-          manaSpent: spent,
-          targets,
-        });
+        submit({ kind: 'cast_sorcery', playerId, cardId: id, manaSpent: spent, targets });
         return;
       }
       console.log(`don't know how to play "${def.name}"`);
     },
     /** Tap a land you control for one mana of the given color. */
-    tap: (name: string, color: ManaColor) => {
+    tap: (cardId: string, color: ManaColor) => {
       const v = requireView();
       if (!v) return;
-      const id = findOnBattlefield(name);
-      if (!id) return console.log(`no permanent matching "${name}" on your battlefield`);
+      const id = asCardId(cardId);
+      if (!id) return;
+      const c = v.cards[id]!;
+      if (c.zone !== 'battlefield' || c.controllerId !== v.forPlayer) {
+        return console.log(`card ${id} is not a permanent you control`);
+      }
       submit({ kind: 'tap_land_for_mana', playerId, cardId: id, color });
     },
-    /** Declare attackers (your creatures by name). */
-    attack: (names: string[]) => {
+    /** Declare attackers by card id. */
+    attack: (cardIds: string[]) => {
       const v = requireView();
       if (!v) return;
-      const ids = names
-        .map((n) => findOnBattlefield(n))
-        .filter((id): id is CardInstanceId => Boolean(id));
-      if (ids.length !== names.length) return console.log('some names did not match');
+      const ids: CardInstanceId[] = [];
+      for (const raw of cardIds) {
+        const id = asCardId(raw);
+        if (!id) return;
+        ids.push(id);
+      }
       submit({ kind: 'declare_attackers', playerId, attackerIds: ids });
     },
-    /** Declare blockers: pairs of [blockerName, attackerName]. */
+    /** Declare blockers: pairs of `[blockerId, attackerId]`. */
     block: (pairs: [string, string][]) => {
       const v = requireView();
       if (!v) return;
-      const assignments = pairs.map(([b, a]) => ({
-        blockerId: findOnBattlefield(b) as CardInstanceId,
-        attackerId: findOnBattlefield(a, false) as CardInstanceId,
-      }));
+      const assignments: { blockerId: CardInstanceId; attackerId: CardInstanceId }[] = [];
+      for (const [b, a] of pairs) {
+        const blockerId = asCardId(b);
+        const attackerId = asCardId(a);
+        if (!blockerId || !attackerId) return;
+        assignments.push({ blockerId, attackerId });
+      }
       submit({ kind: 'declare_blockers', playerId, assignments });
     },
     /** Pass to the next step. */
@@ -299,19 +316,19 @@ const main = async (): Promise<void> => {
     /** Print the helper list. */
     help: () => {
       console.log(`
-Available helpers:
+Discovery:
   me()                            — turn, step, life, mana
-  hand()                          — your hand
+  hand()                          — your hand (shows ids + names)
   bf()                            — your battlefield  (bf(false) for both)
-  state()                         — raw PlayerView
-  last()                          — last server message
+  find("forest")                  — list ids of cards matching a name
+  state(), last()                 — raw view / last server message
 
-  play("forest")                  — play a land
-  play("bears")                   — cast a creature
-  play("strike", { target: "opp" }) — cast a sorcery
-  tap("forest", "G")              — tap a land for mana
-  attack(["bears", "giant"])      — declare attackers
-  block([["bears", "giant"]])     — declare blockers (blocker, attacker)
+Actions (take card ids, not names):
+  play("c12")                     — play a land / cast a creature
+  play("c14", { target: "opp" })  — cast a sorcery (default target = opp)
+  tap("c8", "G")                  — tap a land for mana
+  attack(["c11", "c13"])          — declare attackers
+  block([["c20", "c11"]])         — declare blockers ([blockerId, attackerId])
   pass()                          — pass to next step
   concede()                       — concede the game
 `);
