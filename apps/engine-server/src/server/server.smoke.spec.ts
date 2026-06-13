@@ -7,6 +7,7 @@ import type {
   PlayerId,
   PlayerView,
 } from '@mtg-utils/engine-core';
+import { ActionKind } from '@mtg-utils/engine-core';
 import { startWebSocketServer } from './ws-server';
 
 const PORT = 18080;
@@ -117,7 +118,7 @@ describe('engine-server smoke', () => {
     send(activeClient.ws, {
       kind: 'submit_action',
       gameId: GAME_ID as never,
-      action: { kind: 'concede', playerId: activeView.forPlayer },
+      action: { kind: ActionKind.Concede, playerId: activeView.forPlayer },
     });
 
     const over = await waitForKind(a, 'game_over');

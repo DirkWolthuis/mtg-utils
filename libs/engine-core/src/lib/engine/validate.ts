@@ -1,5 +1,6 @@
 import { getCardDefinition } from '../cards/catalog';
 import type { Action } from '../actions/action';
+import { ActionKind } from '../actions/action';
 import type { GameState } from '../model/game-state';
 import { otherPlayer } from '../model/game-state';
 import type { StackItem } from '../model/stack';
@@ -115,7 +116,7 @@ export const validate = (
   if (state.status === 'ended') return err('game has ended');
 
   switch (action.kind) {
-    case 'tap_land_for_mana': {
+    case ActionKind.TapLandForMana: {
       const card = state.cards[action.cardId];
       if (!card) return err('unknown card');
       if (card.zone !== 'battlefield') return err('card not on battlefield');
@@ -138,7 +139,7 @@ export const validate = (
       ]);
     }
 
-    case 'play_land': {
+    case ActionKind.PlayLand: {
       const step = requireStep(state, ['main1', 'main2']);
       if (step) return err(step);
       const active = requireActive(state, action.playerId);
@@ -163,7 +164,7 @@ export const validate = (
       ]);
     }
 
-    case 'cast_creature': {
+    case ActionKind.CastCreature: {
       if (!sorcerySpeed(state, action.playerId))
         return err('cannot cast at sorcery speed right now');
       const card = state.cards[action.cardId];
@@ -208,7 +209,7 @@ export const validate = (
       ]);
     }
 
-    case 'cast_sorcery':
+    case ActionKind.CastSorcery:
       return castNonPermanentSpell(
         state,
         action,
@@ -216,7 +217,7 @@ export const validate = (
         /*instantSpeed*/ false,
       );
 
-    case 'cast_instant':
+    case ActionKind.CastInstant:
       return castNonPermanentSpell(
         state,
         action,
@@ -224,7 +225,7 @@ export const validate = (
         /*instantSpeed*/ true,
       );
 
-    case 'declare_attackers': {
+    case ActionKind.DeclareAttackers: {
       if (state.step !== 'declare_attackers')
         return err('not declare attackers step');
       const active = requireActive(state, action.playerId);
@@ -266,7 +267,7 @@ export const validate = (
       return ok(events);
     }
 
-    case 'declare_blockers': {
+    case ActionKind.DeclareBlockers: {
       if (state.step !== 'declare_blockers')
         return err('not declare blockers step');
       const defender = otherPlayer(state, state.activePlayer);
@@ -307,7 +308,7 @@ export const validate = (
       return ok(events);
     }
 
-    case 'pass_priority': {
+    case ActionKind.PassPriority: {
       if (state.priorityPlayer !== action.playerId) {
         return err(`player ${action.playerId} does not have priority`);
       }
@@ -317,7 +318,7 @@ export const validate = (
       ]);
     }
 
-    case 'concede': {
+    case ActionKind.Concede: {
       return ok<GameEvent[]>([
         { kind: 'player_lost', playerId: action.playerId, reason: 'concede' },
       ]);
