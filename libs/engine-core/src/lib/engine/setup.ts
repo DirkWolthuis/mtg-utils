@@ -7,27 +7,23 @@ import type {
   GameId,
   PlayerId,
 } from '../model/types';
-import {
-  emptyCombat,
-  emptyManaPool,
-  makeCardInstanceId,
-} from '../model/types';
+import { emptyCombat, emptyManaPool, makeCardInstanceId } from '../model/types';
 import { nextInt } from './rng';
 import { shuffle } from './shuffle';
 
-export interface PlayerSetup {
+export type PlayerSetup = {
   id: PlayerId;
   name: string;
   decklist: CardDefinitionId[];
   startingLife?: number;
   startingHandSize?: number;
-}
+};
 
-export interface GameSetup {
+export type GameSetup = {
   id: GameId;
   seed: number;
   players: [PlayerSetup, PlayerSetup];
-}
+};
 
 const DEFAULT_LIFE = 20;
 const DEFAULT_HAND_SIZE = 7;

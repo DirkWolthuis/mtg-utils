@@ -1,165 +1,156 @@
 import type { StackItem } from '../model/stack';
-import type {
-  CardInstanceId,
-  ManaColor,
-  PlayerId,
-  StackItemId,
-  Step,
-  Zone,
-} from '../model/types';
+import type { CardInstanceId, ManaColor, PlayerId, StackItemId, Step, Zone } from '../model/types';
 
-export interface CardEnteredZone {
+export type CardEnteredZone = {
   kind: 'card_entered_zone';
   cardId: CardInstanceId;
   from: Zone;
   to: Zone;
   causedBy?: PlayerId;
-}
+};
 
-export interface PermanentTapped {
+export type PermanentTapped = {
   kind: 'permanent_tapped';
   cardId: CardInstanceId;
-}
+};
 
-export interface PermanentUntapped {
+export type PermanentUntapped = {
   kind: 'permanent_untapped';
   cardId: CardInstanceId;
-}
+};
 
-export interface ManaProduced {
+export type ManaProduced = {
   kind: 'mana_produced';
   playerId: PlayerId;
   color: ManaColor;
   amount: number;
   sourceCardId?: CardInstanceId;
-}
+};
 
-export interface ManaSpent {
+export type ManaSpent = {
   kind: 'mana_spent';
   playerId: PlayerId;
   spent: Partial<Record<ManaColor, number>>;
-}
+};
 
-export interface ManaPoolEmptied {
+export type ManaPoolEmptied = {
   kind: 'mana_pool_emptied';
   playerId: PlayerId;
-}
+};
 
-export interface DamageDealt {
+export type DamageDealt = {
   kind: 'damage_dealt';
   sourceCardId: CardInstanceId;
-  target:
-    | { kind: 'player'; playerId: PlayerId }
-    | { kind: 'permanent'; cardId: CardInstanceId };
+  target: { kind: 'player'; playerId: PlayerId } | { kind: 'permanent'; cardId: CardInstanceId };
   amount: number;
   combat: boolean;
-}
+};
 
-export interface LifeChanged {
+export type LifeChanged = {
   kind: 'life_changed';
   playerId: PlayerId;
   delta: number;
   reason: 'damage' | 'lifelink' | 'effect';
-}
+};
 
-export interface CardDrawn {
+export type CardDrawn = {
   kind: 'card_drawn';
   playerId: PlayerId;
   cardId: CardInstanceId;
-}
+};
 
-export interface DrawAttemptedEmpty {
+export type DrawAttemptedEmpty = {
   kind: 'draw_attempted_empty';
   playerId: PlayerId;
-}
+};
 
-export interface LandPlayed {
+export type LandPlayed = {
   kind: 'land_played';
   playerId: PlayerId;
   cardId: CardInstanceId;
-}
+};
 
-export interface SpellPutOnStack {
+export type SpellPutOnStack = {
   kind: 'spell_put_on_stack';
   item: StackItem;
-}
+};
 
-export interface StackItemResolved {
+export type StackItemResolved = {
   kind: 'stack_item_resolved';
   stackItemId: StackItemId;
-}
+};
 
-export interface PriorityPassed {
+export type PriorityPassed = {
   kind: 'priority_passed';
   from: PlayerId;
   to: PlayerId;
-}
+};
 
-export interface PriorityReset {
+export type PriorityReset = {
   kind: 'priority_reset';
   to: PlayerId;
   /** Why priority was reset (state change on stack, step transition). */
   reason: 'stack_changed' | 'step_started';
-}
+};
 
-export interface CreatureDied {
+export type CreatureDied = {
   kind: 'creature_died';
   cardId: CardInstanceId;
-}
+};
 
-export interface AttackerDeclared {
+export type AttackerDeclared = {
   kind: 'attacker_declared';
   attackerId: CardInstanceId;
   defenderId: PlayerId;
-}
+};
 
-export interface BlockerDeclared {
+export type BlockerDeclared = {
   kind: 'blocker_declared';
   blockerId: CardInstanceId;
   attackerId: CardInstanceId;
-}
+};
 
-export interface CombatDamageMarked {
+export type CombatDamageMarked = {
   kind: 'combat_damage_marked';
-}
+};
 
-export interface DamageClearedAtCleanup {
+export type DamageClearedAtCleanup = {
   kind: 'damage_cleared_at_cleanup';
-}
+};
 
-export interface SummoningSicknessCleared {
+export type SummoningSicknessCleared = {
   kind: 'summoning_sickness_cleared';
   cardId: CardInstanceId;
-}
+};
 
-export interface StepAdvanced {
+export type StepAdvanced = {
   kind: 'step_advanced';
   from: Step;
   to: Step;
   turn: number;
-}
+};
 
-export interface TurnStarted {
+export type TurnStarted = {
   kind: 'turn_started';
   turn: number;
   activePlayer: PlayerId;
-}
+};
 
-export interface LandsPlayedReset {
+export type LandsPlayedReset = {
   kind: 'lands_played_reset';
   playerId: PlayerId;
-}
+};
 
-export interface PlayerLost {
+export type PlayerLost = {
   kind: 'player_lost';
   playerId: PlayerId;
   reason: 'life' | 'deck_out' | 'concede';
-}
+};
 
-export interface GameEnded {
+export type GameEnded = {
   kind: 'game_ended';
   winner: PlayerId | null;
-}
+};
 
 export type GameEvent =
   | CardEnteredZone

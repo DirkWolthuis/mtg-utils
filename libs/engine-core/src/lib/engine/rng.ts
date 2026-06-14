@@ -1,7 +1,7 @@
-export interface RngStep {
+export type RngStep = {
   value: number;
   state: number;
-}
+};
 
 export const mulberry32 = (state: number): RngStep => {
   let t = (state + 0x6d2b79f5) >>> 0;

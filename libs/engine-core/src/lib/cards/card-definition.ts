@@ -1,4 +1,3 @@
-import type { Effect } from './effects/effect-types';
 import type {
   CardDefinitionId,
   CardType,
@@ -7,8 +6,9 @@ import type {
   ManaCost,
   SuperType,
 } from '../model/types';
+import type { Effect } from './effects/effect-types';
 
-export interface CardDefinition {
+export type CardDefinition = {
   id: CardDefinitionId;
   name: string;
   superTypes: SuperType[];
@@ -22,4 +22,4 @@ export interface CardDefinition {
   produces?: ManaColor[];
   effects?: Effect[];
   flavorText?: string;
-}
+};

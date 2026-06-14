@@ -9,7 +9,11 @@
     "serve:trader": "nx serve mtg-trader",
     "repl": "nx run engine-server:repl --",
     "repl:p1": "nx run engine-server:repl -- --player p1 --name Alice --game g1",
-    "repl:p2": "nx run engine-server:repl -- --player p2 --name Bob --game g1"
+    "repl:p2": "nx run engine-server:repl -- --player p2 --name Bob --game g1",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "nx run-many -t lint",
+    "lint:fix": "nx run-many -t lint --fix"
   },
   "private": true,
   "dependencies": {
@@ -62,6 +66,7 @@
     "jsonc-eslint-parser": "^2.1.0",
     "nx": "22.7.1",
     "prettier": "~3.6.2",
+    "prettier-plugin-organize-imports": "^4.3.0",
     "tslib": "^2.3.0",
     "tsx": "^4.22.4",
     "typescript": "~5.9.2",

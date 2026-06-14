@@ -24,11 +24,14 @@ export default [
           style: 'kebab-case',
         },
       ],
+      '@angular-eslint/prefer-standalone': 'error',
+      '@angular-eslint/prefer-on-push-component-change-detection': 'warn',
     },
   },
   {
     files: ['**/*.html'],
-    // Override or add rules here
-    rules: {},
+    rules: {
+      '@angular-eslint/template/prefer-control-flow': 'error',
+    },
   },
 ];

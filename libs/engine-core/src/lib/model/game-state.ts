@@ -10,7 +10,7 @@ import type {
   Step,
 } from './types';
 
-export interface GameState {
+export type GameState = {
   id: GameId;
   status: GameStatus;
   playerOrder: [PlayerId, PlayerId];
@@ -35,7 +35,7 @@ export interface GameState {
   rngState: number;
   losers: PlayerId[];
   winner: PlayerId | null;
-}
+};
 
 export const otherPlayer = (state: GameState, playerId: PlayerId): PlayerId =>
   state.playerOrder[0] === playerId ? state.playerOrder[1] : state.playerOrder[0];

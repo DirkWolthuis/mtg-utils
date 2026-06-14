@@ -4,20 +4,20 @@ export type EffectTarget =
   | { kind: 'player'; playerId: PlayerId }
   | { kind: 'permanent'; cardId: CardInstanceId };
 
-export interface DealDamageToAny {
+export type DealDamageToAny = {
   kind: 'deal_damage_to_any';
   amount: number;
-}
+};
 
-export interface DrawCards {
+export type DrawCards = {
   kind: 'draw_cards';
   count: number;
-}
+};
 
-export interface GainLife {
+export type GainLife = {
   kind: 'gain_life';
   amount: number;
-}
+};
 
 export type Effect = DealDamageToAny | DrawCards | GainLife;
 

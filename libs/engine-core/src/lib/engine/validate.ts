@@ -21,10 +21,7 @@ import {
  * cannot. Pure: no state mutation, no I/O. Each action type dispatches to
  * a dedicated validator under ./validators/.
  */
-export const validate = (
-  state: GameState,
-  action: Action,
-): Result<GameEvent[], string> => {
+export const validate = (state: GameState, action: Action): Result<GameEvent[], string> => {
   if (state.status === 'ended') {
     return err('game has ended');
   }

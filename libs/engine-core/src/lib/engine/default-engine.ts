@@ -1,6 +1,6 @@
-import { createEngine } from './run';
-import type { Engine } from './run';
 import { registerStepAdvanceSubscriber } from './phases/advance-step';
+import type { Engine } from './run';
+import { createEngine } from './run';
 import { registerPriorityLoop } from './stack/priority';
 import { checkStateBasedActions } from './state-based-actions';
 

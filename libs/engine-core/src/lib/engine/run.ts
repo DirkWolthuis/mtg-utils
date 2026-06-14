@@ -1,29 +1,29 @@
+import type { Result } from '@mtg-utils/engine-util';
 import type { Action } from '../actions/action';
 import type { GameState } from '../model/game-state';
 import { applyEvent } from './apply-event';
 import type { EventBus } from './event-bus';
 import { createEventBus } from './event-bus';
 import type { GameEvent } from './events';
-import type { Result } from '@mtg-utils/engine-util';
 import { validate } from './validate';
 
-export interface ApplyResult {
+export type ApplyResult = {
   state: GameState;
   events: GameEvent[];
-}
+};
 
 export type SubscriberRegistrar = (bus: EventBus) => void;
 export type SbaCheck = (state: GameState) => GameEvent[];
 
-export interface EngineConfig {
+export type EngineConfig = {
   registrars?: SubscriberRegistrar[];
   sbaChecks?: SbaCheck[];
-}
+};
 
-export interface Engine {
+export type Engine = {
   apply: (state: GameState, action: Action) => Result<ApplyResult, string>;
   drain: (state: GameState, seedEvents: GameEvent[]) => ApplyResult;
-}
+};
 
 export const MAX_EVENTS_PER_ACTION = 10_000;
 
@@ -32,11 +32,7 @@ export const createEngine = (config: EngineConfig = {}): Engine => {
   for (const r of config.registrars ?? []) r(bus);
   const sbaChecks = config.sbaChecks ?? [];
 
-  const runSbas = (
-    state: GameState,
-    log: GameEvent[],
-    counter: { n: number },
-  ): GameState => {
+  const runSbas = (state: GameState, log: GameEvent[], counter: { n: number }): GameState => {
     let s = state;
     let stable = false;
     while (!stable) {

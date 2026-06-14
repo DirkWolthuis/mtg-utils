@@ -1,13 +1,8 @@
+import type { CardDefinitionId, GameEvent, PlayerId, PlayerView } from '@mtg-utils/engine-core';
+import { ActionType } from '@mtg-utils/engine-core';
+import type { ClientMessage, ServerMessage } from '@mtg-utils/engine-protocol';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { WebSocket, type WebSocketServer } from 'ws';
-import type { ClientMessage, ServerMessage } from '@mtg-utils/engine-protocol';
-import type {
-  CardDefinitionId,
-  GameEvent,
-  PlayerId,
-  PlayerView,
-} from '@mtg-utils/engine-core';
-import { ActionType } from '@mtg-utils/engine-core';
 import { startWebSocketServer } from './ws-server';
 
 const PORT = 18080;
@@ -19,12 +14,12 @@ const send = (ws: WebSocket, msg: ClientMessage): void => {
   ws.send(JSON.stringify(msg));
 };
 
-interface ClientHandle {
+type ClientHandle = {
   ws: WebSocket;
   inbox: ServerMessage[];
   events: GameEvent[];
   views: PlayerView[];
-}
+};
 
 const connect = async (
   playerId: string,
@@ -89,14 +84,34 @@ describe('engine-server smoke', () => {
 
   it('runs a 2-client game where the active player concedes', async () => {
     const aliceDeck: CardDefinitionId[] = [
-      'forest', 'forest', 'forest', 'forest', 'forest',
-      'grizzly-bears', 'grizzly-bears', 'grizzly-bears', 'grizzly-bears', 'grizzly-bears',
-      'lightning-strike', 'lightning-strike', 'healing-salve',
+      'forest',
+      'forest',
+      'forest',
+      'forest',
+      'forest',
+      'grizzly-bears',
+      'grizzly-bears',
+      'grizzly-bears',
+      'grizzly-bears',
+      'grizzly-bears',
+      'lightning-strike',
+      'lightning-strike',
+      'healing-salve',
     ] as CardDefinitionId[];
     const bobDeck: CardDefinitionId[] = [
-      'mountain', 'mountain', 'mountain', 'mountain', 'mountain',
-      'grizzly-bears', 'grizzly-bears', 'grizzly-bears', 'grizzly-bears', 'grizzly-bears',
-      'lightning-strike', 'lightning-strike', 'healing-salve',
+      'mountain',
+      'mountain',
+      'mountain',
+      'mountain',
+      'mountain',
+      'grizzly-bears',
+      'grizzly-bears',
+      'grizzly-bears',
+      'grizzly-bears',
+      'grizzly-bears',
+      'lightning-strike',
+      'lightning-strike',
+      'healing-salve',
     ] as CardDefinitionId[];
 
     const a = await connect('p1', 'Alice', aliceDeck);

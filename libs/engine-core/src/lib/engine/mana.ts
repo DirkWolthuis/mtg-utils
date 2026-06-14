@@ -1,4 +1,4 @@
-import type { ManaCost, ManaColor, ManaPool } from '../model/types';
+import type { ManaColor, ManaCost, ManaPool } from '../model/types';
 
 const COLORS: ManaColor[] = ['W', 'U', 'B', 'R', 'G', 'C'];
 

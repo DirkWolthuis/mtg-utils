@@ -19,10 +19,7 @@
             "input": "apps/mtg-trader/public"
           }
         ],
-        "styles": [
-          "apps/mtg-trader/src/material-theme.scss",
-          "apps/mtg-trader/src/styles.css"
-        ]
+        "styles": ["apps/mtg-trader/src/material-theme.scss", "apps/mtg-trader/src/styles.css"]
       },
       "configurations": {
         "production": {

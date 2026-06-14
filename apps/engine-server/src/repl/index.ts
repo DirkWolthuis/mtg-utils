@@ -1,5 +1,3 @@
-import * as repl from 'node:repl';
-import { WebSocket } from 'ws';
 import {
   ActionType,
   getCardDefinition,
@@ -13,13 +11,15 @@ import {
   type PlayerView,
 } from '@mtg-utils/engine-core';
 import type { ClientMessage, ServerMessage } from '@mtg-utils/engine-protocol';
+import * as repl from 'node:repl';
+import { WebSocket } from 'ws';
 
-interface Args {
+type Args = {
   player: string;
   name: string;
   game: string;
   port: number;
-}
+};
 
 const parseArgs = (): Args => {
   const argv = process.argv.slice(2);
@@ -36,11 +36,26 @@ const parseArgs = (): Args => {
 };
 
 const DEFAULT_DECK = [
-  'forest', 'forest', 'forest', 'forest', 'forest', 'forest',
-  'mountain', 'mountain', 'mountain', 'mountain', 'mountain', 'mountain',
-  'grizzly-bears', 'grizzly-bears', 'grizzly-bears', 'grizzly-bears',
-  'hill-giant', 'hill-giant',
-  'lightning-strike', 'lightning-strike',
+  'forest',
+  'forest',
+  'forest',
+  'forest',
+  'forest',
+  'forest',
+  'mountain',
+  'mountain',
+  'mountain',
+  'mountain',
+  'mountain',
+  'mountain',
+  'grizzly-bears',
+  'grizzly-bears',
+  'grizzly-bears',
+  'grizzly-bears',
+  'hill-giant',
+  'hill-giant',
+  'lightning-strike',
+  'lightning-strike',
   'healing-salve',
 ] as CardDefinitionId[];
 
@@ -85,9 +100,11 @@ const printIncoming = (msg: ServerMessage): void => {
       );
       for (const e of msg.events) {
         const summary =
-          'cardId' in e ? ` ${(e as { cardId: string }).cardId}` :
-          'playerId' in e ? ` ${(e as { playerId: string }).playerId}` :
-          '';
+          'cardId' in e
+            ? ` ${(e as { cardId: string }).cardId}`
+            : 'playerId' in e
+              ? ` ${(e as { playerId: string }).playerId}`
+              : '';
         console.log(`   · ${e.kind}${summary}`);
       }
       return;
@@ -244,7 +261,13 @@ const main = async (): Promise<void> => {
       const v = requireView();
       if (!v) return [];
       const lowered = needle.toLowerCase();
-      const rows: { zone: string; id: CardInstanceId; name: string; ctrl?: PlayerId; tapped?: boolean }[] = [];
+      const rows: {
+        zone: string;
+        id: CardInstanceId;
+        name: string;
+        ctrl?: PlayerId;
+        tapped?: boolean;
+      }[] = [];
       const match = (defId: string, name: string) =>
         name.toLowerCase().includes(lowered) || defId.toLowerCase().includes(lowered);
       for (const id of v.self.hand) {
@@ -256,7 +279,13 @@ const main = async (): Promise<void> => {
         const c = v.cards[id]!;
         const def = getCardDefinition(c.definitionId);
         if (match(c.definitionId, def.name))
-          rows.push({ zone: 'battlefield', id, name: def.name, ctrl: c.controllerId, tapped: c.tapped });
+          rows.push({
+            zone: 'battlefield',
+            id,
+            name: def.name,
+            ctrl: c.controllerId,
+            tapped: c.tapped,
+          });
       }
       console.table(rows);
       return rows.map((r) => r.id);
@@ -294,7 +323,9 @@ const main = async (): Promise<void> => {
         const targets = (def.effects ?? [])
           .filter((e) => e.kind === 'deal_damage_to_any')
           .map(() => ({ kind: 'player' as const, playerId: targetPlayer }));
-        const type = def.types.includes('instant') ? ActionType.CastInstant : ActionType.CastSorcery;
+        const type = def.types.includes('instant')
+          ? ActionType.CastInstant
+          : ActionType.CastSorcery;
         submit({ type, playerId, cardId: id, manaSpent: spent, targets });
         return;
       }

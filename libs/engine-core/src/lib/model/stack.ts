@@ -1,10 +1,5 @@
 import type { Effect, EffectTarget } from '../cards/effects/effect-types';
-import type {
-  CardInstanceId,
-  ManaColor,
-  PlayerId,
-  StackItemId,
-} from './types';
+import type { CardInstanceId, ManaColor, PlayerId, StackItemId } from './types';
 
 /**
  * A spell or ability on the stack. The `cardId` points at the card instance
@@ -14,7 +9,7 @@ import type {
  * Effects are stored as descriptors so they re-resolve against current state
  * (e.g. target-legality checks happen at resolution, not at cast time).
  */
-export interface StackItem {
+export type StackItem = {
   id: StackItemId;
   controllerId: PlayerId;
   /** The card instance whose cast/trigger put this on the stack. */
@@ -30,4 +25,4 @@ export interface StackItem {
   targets: EffectTarget[];
   /** Recorded for the event log; spent at cast time, not on resolution. */
   manaSpent: Partial<Record<ManaColor, number>>;
-}
+};

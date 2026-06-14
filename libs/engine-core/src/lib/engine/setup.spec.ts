@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { setupGame } from './setup';
 import { makeCardDefinitionId, makeGameId, makePlayerId } from '../model/types';
+import { setupGame } from './setup';
 
 const deck = () => [
   ...Array(20).fill(makeCardDefinitionId('forest')),
@@ -25,9 +25,7 @@ describe('setupGame', () => {
         { id: makePlayerId('p2'), name: 'B', decklist: deck() },
       ],
     });
-    expect(sa.players[makePlayerId('p1')].library).toEqual(
-      sb.players[makePlayerId('p1')].library,
-    );
+    expect(sa.players[makePlayerId('p1')].library).toEqual(sb.players[makePlayerId('p1')].library);
     expect(sa.players[makePlayerId('p1')].hand.length).toBe(7);
     expect(sa.activePlayer).toBe(sb.activePlayer);
   });

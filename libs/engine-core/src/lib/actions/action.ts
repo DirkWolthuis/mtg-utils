@@ -1,5 +1,5 @@
-import type { CardInstanceId, ManaColor, PlayerId } from '../model/types';
 import type { EffectTarget } from '../cards/effects/effect-types';
+import type { CardInstanceId, ManaColor, PlayerId } from '../model/types';
 
 /**
  * The set of player actions the engine accepts. Values are the string the
@@ -19,63 +19,63 @@ export enum ActionType {
   Concede = 'concede',
 }
 
-export interface TapLandForMana {
+export type TapLandForMana = {
   type: ActionType.TapLandForMana;
   playerId: PlayerId;
   cardId: CardInstanceId;
   color: ManaColor;
-}
+};
 
-export interface PlayLand {
+export type PlayLand = {
   type: ActionType.PlayLand;
   playerId: PlayerId;
   cardId: CardInstanceId;
-}
+};
 
-export interface CastCreature {
+export type CastCreature = {
   type: ActionType.CastCreature;
   playerId: PlayerId;
   cardId: CardInstanceId;
   manaSpent: Partial<Record<ManaColor, number>>;
-}
+};
 
-export interface CastSorcery {
+export type CastSorcery = {
   type: ActionType.CastSorcery;
   playerId: PlayerId;
   cardId: CardInstanceId;
   manaSpent: Partial<Record<ManaColor, number>>;
   targets?: EffectTarget[];
-}
+};
 
-export interface CastInstant {
+export type CastInstant = {
   type: ActionType.CastInstant;
   playerId: PlayerId;
   cardId: CardInstanceId;
   manaSpent: Partial<Record<ManaColor, number>>;
   targets?: EffectTarget[];
-}
+};
 
-export interface DeclareAttackers {
+export type DeclareAttackers = {
   type: ActionType.DeclareAttackers;
   playerId: PlayerId;
   attackerIds: CardInstanceId[];
-}
+};
 
-export interface DeclareBlockers {
+export type DeclareBlockers = {
   type: ActionType.DeclareBlockers;
   playerId: PlayerId;
   assignments: { blockerId: CardInstanceId; attackerId: CardInstanceId }[];
-}
+};
 
-export interface PassPriority {
+export type PassPriority = {
   type: ActionType.PassPriority;
   playerId: PlayerId;
-}
+};
 
-export interface Concede {
+export type Concede = {
   type: ActionType.Concede;
   playerId: PlayerId;
-}
+};
 
 export type Action =
   | TapLandForMana
