@@ -7,7 +7,7 @@ import type { EffectTarget } from '../cards/effects/effect-types';
  * tests) can switch on a single source of truth rather than scattered
  * string literals.
  */
-export enum ActionKind {
+export enum ActionType {
   TapLandForMana = 'tap_land_for_mana',
   PlayLand = 'play_land',
   CastCreature = 'cast_creature',
@@ -20,27 +20,27 @@ export enum ActionKind {
 }
 
 export interface TapLandForMana {
-  kind: ActionKind.TapLandForMana;
+  type: ActionType.TapLandForMana;
   playerId: PlayerId;
   cardId: CardInstanceId;
   color: ManaColor;
 }
 
 export interface PlayLand {
-  kind: ActionKind.PlayLand;
+  type: ActionType.PlayLand;
   playerId: PlayerId;
   cardId: CardInstanceId;
 }
 
 export interface CastCreature {
-  kind: ActionKind.CastCreature;
+  type: ActionType.CastCreature;
   playerId: PlayerId;
   cardId: CardInstanceId;
   manaSpent: Partial<Record<ManaColor, number>>;
 }
 
 export interface CastSorcery {
-  kind: ActionKind.CastSorcery;
+  type: ActionType.CastSorcery;
   playerId: PlayerId;
   cardId: CardInstanceId;
   manaSpent: Partial<Record<ManaColor, number>>;
@@ -48,7 +48,7 @@ export interface CastSorcery {
 }
 
 export interface CastInstant {
-  kind: ActionKind.CastInstant;
+  type: ActionType.CastInstant;
   playerId: PlayerId;
   cardId: CardInstanceId;
   manaSpent: Partial<Record<ManaColor, number>>;
@@ -56,24 +56,24 @@ export interface CastInstant {
 }
 
 export interface DeclareAttackers {
-  kind: ActionKind.DeclareAttackers;
+  type: ActionType.DeclareAttackers;
   playerId: PlayerId;
   attackerIds: CardInstanceId[];
 }
 
 export interface DeclareBlockers {
-  kind: ActionKind.DeclareBlockers;
+  type: ActionType.DeclareBlockers;
   playerId: PlayerId;
   assignments: { blockerId: CardInstanceId; attackerId: CardInstanceId }[];
 }
 
 export interface PassPriority {
-  kind: ActionKind.PassPriority;
+  type: ActionType.PassPriority;
   playerId: PlayerId;
 }
 
 export interface Concede {
-  kind: ActionKind.Concede;
+  type: ActionType.Concede;
   playerId: PlayerId;
 }
 

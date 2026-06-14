@@ -10,7 +10,7 @@ import {
 } from '../model/types';
 import type { GameState } from '../model/game-state';
 import type { Action } from '../actions/action';
-import { ActionKind } from '../actions/action';
+import { ActionType } from '../actions/action';
 
 const FOREST = makeCardDefinitionId('forest');
 const MOUNTAIN = makeCardDefinitionId('mountain');
@@ -79,7 +79,7 @@ const apply = (
   action: Action,
 ): GameState => {
   const r = engine.apply(state, action);
-  if (!r.ok) throw new Error(`action ${action.kind} rejected: ${r.error}`);
+  if (!r.ok) throw new Error(`action ${action.type} rejected: ${r.error}`);
   return r.value.state;
 };
 
@@ -130,7 +130,7 @@ describe('engine', () => {
     const start = startBasicGame();
     const active = start.state.activePlayer;
     const { state, cardId: forestId } = ensureInHand(start.state, active, FOREST);
-    const next = apply(start.engine, state, { kind: ActionKind.PlayLand, playerId: active, cardId: forestId });
+    const next = apply(start.engine, state, { type: ActionType.PlayLand, playerId: active, cardId: forestId });
     expect(next.players[active].landsPlayedThisTurn).toBe(1);
     expect(next.cards[forestId].zone).toBe('battlefield');
   });
@@ -141,7 +141,7 @@ describe('engine', () => {
     const bearsId = findInHand(state, active, BEARS);
     if (!bearsId) throw new Error('test deck must seat a bears in opening hand');
     const r = engine.apply(state, {
-      kind: ActionKind.CastCreature,
+      type: ActionType.CastCreature,
       playerId: active,
       cardId: bearsId,
       manaSpent: { G: 1, C: 1 },
@@ -154,12 +154,12 @@ describe('engine', () => {
     const active = start.state.activePlayer;
     const seated = ensureInHand(start.state, active, FOREST);
     let s = apply(start.engine, seated.state, {
-      kind: ActionKind.PlayLand,
+      type: ActionType.PlayLand,
       playerId: active,
       cardId: seated.cardId,
     });
     const tapResult = start.engine.apply(s, {
-      kind: ActionKind.TapLandForMana,
+      type: ActionType.TapLandForMana,
       playerId: active,
       cardId: seated.cardId,
       color: 'G',
@@ -187,7 +187,7 @@ describe('engine', () => {
     };
 
     s = apply(engine, s, {
-      kind: ActionKind.CastSorcery,
+      type: ActionType.CastSorcery,
       playerId: active,
       cardId: boltId,
       manaSpent: { R: 1, C: 1 },
@@ -198,11 +198,11 @@ describe('engine', () => {
     expect(s.cards[boltId].zone).toBe('stack');
     expect(s.players[opponent].life).toBe(20);
 
-    s = apply(engine, s, { kind: ActionKind.PassPriority, playerId: active });
+    s = apply(engine, s, { type: ActionType.PassPriority, playerId: active });
     expect(s.stack.length).toBe(1);
     expect(s.players[opponent].life).toBe(20);
 
-    s = apply(engine, s, { kind: ActionKind.PassPriority, playerId: opponent });
+    s = apply(engine, s, { type: ActionType.PassPriority, playerId: opponent });
     // Both passed: top of stack resolves
     expect(s.stack.length).toBe(0);
     expect(s.players[opponent].life).toBe(17);
@@ -225,12 +225,12 @@ describe('engine', () => {
       },
     };
     // Active player passes priority so opponent has priority
-    s = apply(engine, s, { kind: ActionKind.PassPriority, playerId: active });
+    s = apply(engine, s, { type: ActionType.PassPriority, playerId: active });
     expect(s.priorityPlayer).toBe(opponent);
 
     // Opponent casts Lightning Bolt at active player
     s = apply(engine, s, {
-      kind: ActionKind.CastInstant,
+      type: ActionType.CastInstant,
       playerId: opponent,
       cardId: boltId,
       manaSpent: { R: 1 },
@@ -241,8 +241,8 @@ describe('engine', () => {
     // After spell cast, caster (opponent) gets priority back
     expect(s.priorityPlayer).toBe(opponent);
 
-    s = apply(engine, s, { kind: ActionKind.PassPriority, playerId: opponent });
-    s = apply(engine, s, { kind: ActionKind.PassPriority, playerId: active });
+    s = apply(engine, s, { type: ActionType.PassPriority, playerId: opponent });
+    s = apply(engine, s, { type: ActionType.PassPriority, playerId: active });
     expect(s.players[active].life).toBe(17);
     expect(s.stack.length).toBe(0);
   });
@@ -284,7 +284,7 @@ describe('engine', () => {
 
     // Active casts Lightning Strike at the opponent (sorcery)
     s = apply(engine, s, {
-      kind: ActionKind.CastSorcery,
+      type: ActionType.CastSorcery,
       playerId: active,
       cardId: seatedSorc.cardId,
       manaSpent: { R: 1, C: 1 },
@@ -293,12 +293,12 @@ describe('engine', () => {
     expect(s.stack.length).toBe(1);
 
     // Active passes priority to opponent
-    s = apply(engine, s, { kind: ActionKind.PassPriority, playerId: active });
+    s = apply(engine, s, { type: ActionType.PassPriority, playerId: active });
     expect(s.priorityPlayer).toBe(opponent);
 
     // Opponent casts Lightning Bolt at the active player in response (instant)
     s = apply(engine, s, {
-      kind: ActionKind.CastInstant,
+      type: ActionType.CastInstant,
       playerId: opponent,
       cardId: seatedInst.cardId,
       manaSpent: { R: 1 },
@@ -310,15 +310,15 @@ describe('engine', () => {
     expect(s.players[opponent].life).toBe(20);
 
     // Both pass: top of stack (instant) resolves first
-    s = apply(engine, s, { kind: ActionKind.PassPriority, playerId: opponent });
-    s = apply(engine, s, { kind: ActionKind.PassPriority, playerId: active });
+    s = apply(engine, s, { type: ActionType.PassPriority, playerId: opponent });
+    s = apply(engine, s, { type: ActionType.PassPriority, playerId: active });
     expect(s.stack.length).toBe(1);
     expect(s.players[active].life).toBe(17); // instant resolved
     expect(s.players[opponent].life).toBe(20); // sorcery still on stack
 
     // Both pass again: sorcery resolves
-    s = apply(engine, s, { kind: ActionKind.PassPriority, playerId: active });
-    s = apply(engine, s, { kind: ActionKind.PassPriority, playerId: opponent });
+    s = apply(engine, s, { type: ActionType.PassPriority, playerId: active });
+    s = apply(engine, s, { type: ActionType.PassPriority, playerId: opponent });
     expect(s.stack.length).toBe(0);
     expect(s.players[opponent].life).toBe(17);
   });
@@ -367,7 +367,7 @@ describe('engine', () => {
     };
 
     const r1 = engine.apply(seeded, {
-      kind: ActionKind.DeclareAttackers,
+      type: ActionType.DeclareAttackers,
       playerId: active,
       attackerIds: [aBear],
     });
@@ -379,7 +379,7 @@ describe('engine', () => {
     expect(r1.value.state.step).toBe('declare_blockers');
 
     const r2 = engine.apply(r1.value.state, {
-      kind: ActionKind.DeclareBlockers,
+      type: ActionType.DeclareBlockers,
       playerId: opponent,
       assignments: [{ blockerId: dBear, attackerId: aBear }],
     });

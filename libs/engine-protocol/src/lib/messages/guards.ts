@@ -19,7 +19,7 @@ export const isClientMessage = (raw: unknown): raw is ClientMessage => {
       return (
         typeof raw['gameId'] === 'string' &&
         isObject(raw['action']) &&
-        typeof (raw['action'] as Record<string, unknown>)['kind'] === 'string'
+        typeof (raw['action'] as Record<string, unknown>)['type'] === 'string'
       );
     case 'leave_game':
       return typeof raw['gameId'] === 'string' && typeof raw['playerId'] === 'string';

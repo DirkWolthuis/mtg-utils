@@ -1,7 +1,7 @@
 import * as repl from 'node:repl';
 import { WebSocket } from 'ws';
 import {
-  ActionKind,
+  ActionType,
   getCardDefinition,
   type Action,
   type CardDefinitionId,
@@ -144,7 +144,7 @@ const main = async (): Promise<void> => {
     if (view.step === 'declare_attackers' && view.activePlayer === playerId) return;
     if (view.step === 'declare_blockers' && view.activePlayer !== playerId) return;
     lastAutoPassedView = view;
-    submit({ kind: ActionKind.PassPriority, playerId });
+    submit({ type: ActionType.PassPriority, playerId });
   };
 
   ws.on('message', (data) => {
@@ -276,12 +276,12 @@ const main = async (): Promise<void> => {
       }
       const def = getCardDefinition(c.definitionId);
       if (def.types.includes('land')) {
-        submit({ kind: ActionKind.PlayLand, playerId, cardId: id });
+        submit({ type: ActionType.PlayLand, playerId, cardId: id });
         return;
       }
       const spent = computeSpent(def.manaCost, v.self.manaPool);
       if (def.types.includes('creature')) {
-        submit({ kind: ActionKind.CastCreature, playerId, cardId: id, manaSpent: spent });
+        submit({ type: ActionType.CastCreature, playerId, cardId: id, manaSpent: spent });
         return;
       }
       if (def.types.includes('sorcery') || def.types.includes('instant')) {
@@ -294,8 +294,8 @@ const main = async (): Promise<void> => {
         const targets = (def.effects ?? [])
           .filter((e) => e.kind === 'deal_damage_to_any')
           .map(() => ({ kind: 'player' as const, playerId: targetPlayer }));
-        const kind = def.types.includes('instant') ? ActionKind.CastInstant : ActionKind.CastSorcery;
-        submit({ kind, playerId, cardId: id, manaSpent: spent, targets });
+        const type = def.types.includes('instant') ? ActionType.CastInstant : ActionType.CastSorcery;
+        submit({ type, playerId, cardId: id, manaSpent: spent, targets });
         return;
       }
       console.log(`don't know how to play "${def.name}"`);
@@ -324,7 +324,7 @@ const main = async (): Promise<void> => {
       if (c.zone !== 'battlefield' || c.controllerId !== v.forPlayer) {
         return console.log(`card ${id} is not a permanent you control`);
       }
-      submit({ kind: ActionKind.TapLandForMana, playerId, cardId: id, color });
+      submit({ type: ActionType.TapLandForMana, playerId, cardId: id, color });
     },
     /** Declare attackers by card id. */
     attack: (cardIds: string[]) => {
@@ -336,7 +336,7 @@ const main = async (): Promise<void> => {
         if (!id) return;
         ids.push(id);
       }
-      submit({ kind: ActionKind.DeclareAttackers, playerId, attackerIds: ids });
+      submit({ type: ActionType.DeclareAttackers, playerId, attackerIds: ids });
     },
     /** Declare blockers: pairs of `[blockerId, attackerId]`. */
     block: (pairs: [string, string][]) => {
@@ -349,12 +349,12 @@ const main = async (): Promise<void> => {
         if (!blockerId || !attackerId) return;
         assignments.push({ blockerId, attackerId });
       }
-      submit({ kind: ActionKind.DeclareBlockers, playerId, assignments });
+      submit({ type: ActionType.DeclareBlockers, playerId, assignments });
     },
     /** Pass priority. Both players passing in a row → resolve top of stack or advance the step. */
-    pass: () => submit({ kind: ActionKind.PassPriority, playerId }),
+    pass: () => submit({ type: ActionType.PassPriority, playerId }),
     /** Concede the game. */
-    concede: () => submit({ kind: ActionKind.Concede, playerId }),
+    concede: () => submit({ type: ActionType.Concede, playerId }),
     /**
      * Toggle auto-pass. With no args, prints current state.
      * When on, the REPL auto-sends pass_priority whenever this player gains
