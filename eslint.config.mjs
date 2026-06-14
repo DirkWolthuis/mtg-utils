@@ -51,6 +51,7 @@ export default [
       'object-shorthand': ['error', 'always'],
       'prefer-const': 'error',
       'no-useless-rename': 'error',
+      'no-nested-ternary': 'error',
       eqeqeq: ['error', 'always', { null: 'ignore' }],
     },
   },

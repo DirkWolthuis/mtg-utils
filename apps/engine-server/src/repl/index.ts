@@ -99,12 +99,12 @@ const printIncoming = (msg: ServerMessage): void => {
         `<- event_batch (${msg.events.length} events) turn=${msg.view.turn} step=${msg.view.step}`,
       );
       for (const e of msg.events) {
-        const summary =
-          'cardId' in e
-            ? ` ${(e as { cardId: string }).cardId}`
-            : 'playerId' in e
-              ? ` ${(e as { playerId: string }).playerId}`
-              : '';
+        let summary = '';
+        if ('cardId' in e) {
+          summary = ` ${(e as { cardId: string }).cardId}`;
+        } else if ('playerId' in e) {
+          summary = ` ${(e as { playerId: string }).playerId}`;
+        }
         console.log(`   · ${e.kind}${summary}`);
       }
       return;
@@ -314,12 +314,14 @@ const main = async (): Promise<void> => {
         return;
       }
       if (def.types.includes('sorcery') || def.types.includes('instant')) {
-        const targetPlayer: PlayerId =
-          opts?.target === 'me'
-            ? v.forPlayer
-            : opts?.target === undefined || opts.target === 'opp'
-              ? (v.opponent.id as PlayerId)
-              : (opts.target as PlayerId);
+        let targetPlayer: PlayerId;
+        if (opts?.target === 'me') {
+          targetPlayer = v.forPlayer;
+        } else if (opts?.target === undefined || opts.target === 'opp') {
+          targetPlayer = v.opponent.id as PlayerId;
+        } else {
+          targetPlayer = opts.target as PlayerId;
+        }
         const targets = (def.effects ?? [])
           .filter((e) => e.kind === 'deal_damage_to_any')
           .map(() => ({ kind: 'player' as const, playerId: targetPlayer }));
