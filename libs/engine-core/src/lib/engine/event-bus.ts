@@ -3,10 +3,10 @@ import type { GameEvent, GameEventKind } from './events';
 
 export type Subscriber = (state: GameState, event: GameEvent) => GameEvent[];
 
-export interface EventBus {
+export type EventBus = {
   on: (kind: GameEventKind | '*', handler: Subscriber) => void;
   notify: (state: GameState, event: GameEvent) => GameEvent[];
-}
+};
 
 export const createEventBus = (): EventBus => {
   const byKind = new Map<GameEventKind | '*', Subscriber[]>();

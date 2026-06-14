@@ -1,5 +1,5 @@
-import type { CardDefinition } from '../card-definition';
 import { makeCardDefinitionId } from '../../model/types';
+import type { CardDefinition } from '../card-definition';
 
 export const lightningStrike: CardDefinition = {
   id: makeCardDefinitionId('lightning-strike'),

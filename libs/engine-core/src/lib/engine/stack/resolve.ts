@@ -1,7 +1,7 @@
 import { getCardDefinition } from '../../cards/catalog';
 import { runEffect } from '../../cards/effects/effect-registry';
-import type { StackItem } from '../../model/stack';
 import type { GameState } from '../../model/game-state';
+import type { StackItem } from '../../model/stack';
 import type { GameEvent } from '../events';
 
 /**

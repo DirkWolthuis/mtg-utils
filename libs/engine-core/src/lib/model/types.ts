@@ -12,14 +12,14 @@ export const makeStackItemId = (s: string): StackItemId => s as StackItemId;
 
 export type ManaColor = 'W' | 'U' | 'B' | 'R' | 'G' | 'C';
 
-export interface ManaPool {
+export type ManaPool = {
   W: number;
   U: number;
   B: number;
   R: number;
   G: number;
   C: number;
-}
+};
 
 export const emptyManaPool = (): ManaPool => ({ W: 0, U: 0, B: 0, R: 0, G: 0, C: 0 });
 
@@ -71,7 +71,7 @@ export type Keyword =
   | 'deathtouch'
   | 'first_strike';
 
-export interface CardInstance {
+export type CardInstance = {
   id: CardInstanceId;
   definitionId: CardDefinitionId;
   ownerId: PlayerId;
@@ -82,9 +82,9 @@ export interface CardInstance {
   toughnessMod: number;
   damage: number;
   summoningSick: boolean;
-}
+};
 
-export interface Player {
+export type Player = {
   id: PlayerId;
   name: string;
   life: number;
@@ -94,7 +94,7 @@ export interface Player {
   graveyard: CardInstanceId[];
   exile: CardInstanceId[];
   landsPlayedThisTurn: number;
-}
+};
 
 export type Phase = 'beginning' | 'main1' | 'combat' | 'main2' | 'ending';
 
@@ -149,22 +149,22 @@ export const phaseOfStep = (step: Step): Phase => {
   }
 };
 
-export interface AttackerEntry {
+export type AttackerEntry = {
   attackerId: CardInstanceId;
   defenderId: PlayerId;
-}
+};
 
-export interface BlockerEntry {
+export type BlockerEntry = {
   blockerId: CardInstanceId;
   attackerId: CardInstanceId;
-}
+};
 
-export interface CombatState {
+export type CombatState = {
   attackers: AttackerEntry[];
   blockers: BlockerEntry[];
   attackersDeclared: boolean;
   blockersDeclared: boolean;
-}
+};
 
 export const emptyCombat = (): CombatState => ({
   attackers: [],

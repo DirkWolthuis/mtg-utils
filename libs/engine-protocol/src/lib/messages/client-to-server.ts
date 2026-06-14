@@ -1,24 +1,24 @@
 import type { Action, CardDefinitionId, GameId, PlayerId } from '@mtg-utils/engine-core';
 
-export interface JoinGame {
+export type JoinGame = {
   kind: 'join_game';
   gameId: GameId;
   playerId: PlayerId;
   name: string;
   deck: CardDefinitionId[];
-}
+};
 
-export interface SubmitAction {
+export type SubmitAction = {
   kind: 'submit_action';
   gameId: GameId;
   action: Action;
-}
+};
 
-export interface LeaveGame {
+export type LeaveGame = {
   kind: 'leave_game';
   gameId: GameId;
   playerId: PlayerId;
-}
+};
 
 export type ClientMessage = JoinGame | SubmitAction | LeaveGame;
 export type ClientMessageKind = ClientMessage['kind'];

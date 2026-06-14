@@ -14,12 +14,12 @@ import {
 import type { ServerMessage } from '@mtg-utils/engine-protocol';
 import type { WebSocket } from 'ws';
 
-export interface JoinedPlayer {
+export type JoinedPlayer = {
   playerId: PlayerId;
   name: string;
   deck: CardDefinitionId[];
   socket: WebSocket;
-}
+};
 
 export class GameRoom {
   readonly id: GameId;
@@ -50,9 +50,7 @@ export class GameRoom {
     if (existing) existing.socket = socket;
   }
 
-  join(player: JoinedPlayer):
-    | { ok: true; ready: boolean }
-    | { ok: false; reason: string } {
+  join(player: JoinedPlayer): { ok: true; ready: boolean } | { ok: false; reason: string } {
     const existing = this.players.get(player.playerId);
     if (existing) {
       // Re-attach socket for an existing player (reconnect)
@@ -79,9 +77,7 @@ export class GameRoom {
     for (const p of arr) this.sendStateSync(p.playerId);
   }
 
-  submitAction(action: Action):
-    | { ok: true }
-    | { ok: false; reason: string } {
+  submitAction(action: Action): { ok: true } | { ok: false; reason: string } {
     if (!this.state) return { ok: false, reason: 'game has not started' };
     const result = this.engine.apply(this.state, action);
     if (!result.ok) return { ok: false, reason: result.error };

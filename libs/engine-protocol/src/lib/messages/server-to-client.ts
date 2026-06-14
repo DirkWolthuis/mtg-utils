@@ -1,47 +1,42 @@
-import type {
-  GameEvent,
-  GameId,
-  PlayerId,
-  PlayerView,
-} from '@mtg-utils/engine-core';
+import type { GameEvent, GameId, PlayerId, PlayerView } from '@mtg-utils/engine-core';
 
-export interface StateSync {
+export type StateSync = {
   kind: 'state_sync';
   gameId: GameId;
   view: PlayerView;
-}
+};
 
-export interface EventBatch {
+export type EventBatch = {
   kind: 'event_batch';
   gameId: GameId;
   events: GameEvent[];
   view: PlayerView;
-}
+};
 
-export interface RejectedAction {
+export type RejectedAction = {
   kind: 'rejected_action';
   gameId: GameId;
   reason: string;
-}
+};
 
-export interface GameOver {
+export type GameOver = {
   kind: 'game_over';
   gameId: GameId;
   winner: PlayerId | null;
-}
+};
 
-export interface ServerError {
+export type ServerError = {
   kind: 'server_error';
   message: string;
-}
+};
 
-export interface JoinAck {
+export type JoinAck = {
   kind: 'join_ack';
   gameId: GameId;
   playerId: PlayerId;
   /** Both players present and game has started */
   ready: boolean;
-}
+};
 
 export type ServerMessage =
   | StateSync

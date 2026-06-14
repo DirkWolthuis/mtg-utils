@@ -46,18 +46,13 @@ export const castNonPermanentSpell = (
   if (!costCheck.ok) {
     return err(costCheck.reason);
   }
-  const poolCheck = poolHasAtLeast(
-    state.players[action.playerId].manaPool,
-    action.manaSpent,
-  );
+  const poolCheck = poolHasAtLeast(state.players[action.playerId].manaPool, action.manaSpent);
   if (!poolCheck.ok) {
     return err(poolCheck.reason);
   }
 
   const effects = def.effects ?? [];
-  const targetCount = effects.filter(
-    (e) => e.kind === 'deal_damage_to_any',
-  ).length;
+  const targetCount = effects.filter((e) => e.kind === 'deal_damage_to_any').length;
   const targets = action.targets ?? [];
   if (targets.length < targetCount) {
     return err(`spell needs ${targetCount} target(s)`);

@@ -33,10 +33,7 @@ export const validateCastCreature = (
   if (!costCheck.ok) {
     return err(costCheck.reason);
   }
-  const poolCheck = poolHasAtLeast(
-    state.players[action.playerId].manaPool,
-    action.manaSpent,
-  );
+  const poolCheck = poolHasAtLeast(state.players[action.playerId].manaPool, action.manaSpent);
   if (!poolCheck.ok) {
     return err(poolCheck.reason);
   }

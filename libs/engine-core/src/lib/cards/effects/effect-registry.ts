@@ -1,19 +1,19 @@
-import type { Effect, EffectKind, EffectTarget } from './effect-types';
-import type { GameState } from '../../model/game-state';
-import type { CardInstanceId, PlayerId } from '../../model/types';
-import type { GameEvent } from '../../engine/events';
 import type { Result } from '@mtg-utils/engine-util';
 import { err, ok } from '@mtg-utils/engine-util';
+import type { GameEvent } from '../../engine/events';
+import type { GameState } from '../../model/game-state';
+import type { CardInstanceId, PlayerId } from '../../model/types';
+import type { Effect, EffectKind, EffectTarget } from './effect-types';
 import { dealDamageToAny } from './handlers/deal-damage';
 import { drawCards } from './handlers/draw-cards';
 import { gainLife } from './handlers/gain-life';
 
-export interface EffectContext {
+export type EffectContext = {
   state: GameState;
   casterId: PlayerId;
   sourceCardId: CardInstanceId;
   target?: EffectTarget;
-}
+};
 
 export type EffectHandler<E extends Effect> = (
   effect: E,
@@ -34,4 +34,4 @@ export const runEffect = (effect: Effect, ctx: EffectContext): Result<GameEvent[
   return handler(effect, ctx);
 };
 
-export { ok, err };
+export { err, ok };

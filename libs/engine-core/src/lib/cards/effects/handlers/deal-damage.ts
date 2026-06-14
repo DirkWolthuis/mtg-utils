@@ -1,12 +1,9 @@
-import type { DealDamageToAny } from '../effect-types';
-import type { EffectContext, EffectHandler } from '../effect-registry';
-import type { GameEvent } from '../../../engine/events';
 import { err, ok } from '@mtg-utils/engine-util';
+import type { GameEvent } from '../../../engine/events';
+import type { EffectContext, EffectHandler } from '../effect-registry';
+import type { DealDamageToAny } from '../effect-types';
 
-export const dealDamageToAny: EffectHandler<DealDamageToAny> = (
-  effect,
-  ctx: EffectContext,
-) => {
+export const dealDamageToAny: EffectHandler<DealDamageToAny> = (effect, ctx: EffectContext) => {
   if (!ctx.target) return err('deal_damage_to_any requires a target');
   const target = ctx.target;
   if (target.kind === 'player' && !ctx.state.players[target.playerId]) {

@@ -13,11 +13,7 @@ const updateCard = (
   cards: { ...state.cards, [cardId]: { ...state.cards[cardId], ...patch } },
 });
 
-const updatePlayer = (
-  state: GameState,
-  playerId: PlayerId,
-  patch: Partial<Player>,
-): GameState => ({
+const updatePlayer = (state: GameState, playerId: PlayerId, patch: Partial<Player>): GameState => ({
   ...state,
   players: { ...state.players, [playerId]: { ...state.players[playerId], ...patch } },
 });

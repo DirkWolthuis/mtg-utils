@@ -1,6 +1,9 @@
 import { nextInt } from './rng';
 
-export const shuffle = <T>(items: readonly T[], rngState: number): { items: T[]; state: number } => {
+export const shuffle = <T>(
+  items: readonly T[],
+  rngState: number,
+): { items: T[]; state: number } => {
   const copy = items.slice();
   let state = rngState;
   for (let i = copy.length - 1; i > 0; i--) {

@@ -1,13 +1,13 @@
-import { WebSocketServer, WebSocket } from 'ws';
 import { makeGameId, makePlayerId } from '@mtg-utils/engine-core';
 import type { ClientMessage, ServerMessage } from '@mtg-utils/engine-protocol';
 import { parseClientMessage } from '@mtg-utils/engine-protocol';
+import { type WebSocket, WebSocketServer } from 'ws';
 import { RoomRegistry } from './room-registry';
 import { createSession } from './session';
 
-export interface StartOptions {
+export type StartOptions = {
   port: number;
-}
+};
 
 export const startWebSocketServer = (opts: StartOptions): WebSocketServer => {
   const wss = new WebSocketServer({ port: opts.port });

@@ -2,7 +2,7 @@ import type { GameState } from '../model/game-state';
 import type { StackItem } from '../model/stack';
 import type { CardInstance, CardInstanceId, Player, PlayerId } from '../model/types';
 
-export interface OpponentView {
+export type OpponentView = {
   id: PlayerId;
   name: string;
   life: number;
@@ -12,9 +12,9 @@ export interface OpponentView {
   exile: CardInstanceId[];
   manaPool: Player['manaPool'];
   landsPlayedThisTurn: number;
-}
+};
 
-export interface PlayerView {
+export type PlayerView = {
   forPlayer: PlayerId;
   gameId: GameState['id'];
   status: GameState['status'];
@@ -30,7 +30,7 @@ export interface PlayerView {
   cards: Record<CardInstanceId, CardInstance>;
   self: Player;
   opponent: OpponentView;
-}
+};
 
 export const projectFor = (state: GameState, viewer: PlayerId): PlayerView => {
   const opponentId = state.playerOrder[0] === viewer ? state.playerOrder[1] : state.playerOrder[0];

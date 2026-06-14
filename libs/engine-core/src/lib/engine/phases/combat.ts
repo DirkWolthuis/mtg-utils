@@ -3,10 +3,10 @@ import type { GameState } from '../../model/game-state';
 import type { CardInstanceId } from '../../model/types';
 import type { GameEvent } from '../events';
 
-interface PowerToughness {
+type PowerToughness = {
   power: number;
   toughness: number;
-}
+};
 
 const ptOf = (state: GameState, cardId: CardInstanceId): PowerToughness => {
   const c = state.cards[cardId];

@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
-import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { CdkDrag } from '@angular/cdk/drag-drop';
+import { Component } from '@angular/core';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { RouterModule } from '@angular/router';
 
 @Component({
   imports: [RouterModule, MatSlideToggle, CdkDrag],

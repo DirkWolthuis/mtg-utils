@@ -25,6 +25,10 @@ npm run repl -- --player p1 --name Alice --game g1
 npm run repl:p1         # shortcut: REPL as p1/Alice/g1
 npm run repl:p2         # shortcut: REPL as p2/Bob/g1
 npm run serve:trader    # the Angular mtg-trader app (unrelated to the engine)
+npm run format          # prettier --write across the repo
+npm run format:check    # prettier --check (use in CI / pre-PR)
+npm run lint            # nx run-many -t lint
+npm run lint:fix        # nx run-many -t lint --fix
 ```
 
 Direct Nx forms (use these for narrower targets):
@@ -74,6 +78,24 @@ Public entrypoint: `engine.apply(state, action) → Result<{ state, events }, st
 ### v0 scope
 
 Sorcery-speed only — **there is no stack, no priority loop, no instants, no triggered/activated abilities**. The architecture leaves room for them (see `i-want-to-create-jaunty-quill.md` plan): a stack module would slot between `validate` and effect resolution; triggered abilities are subscribers registered on ETB and unregistered on LTB.
+
+## Formatting and lint (must pass)
+
+Generated code is expected to match the repo's formatter and linter without manual cleanup. Before reporting a task as done, run:
+
+```sh
+npm run format         # apply Prettier
+npm run lint:fix       # apply ESLint autofixes
+npm run lint           # confirm no remaining errors
+```
+
+What the tools enforce (so you can write code that already matches):
+
+- **Prettier** (`.prettierrc`): single quotes, trailing commas everywhere, `printWidth: 100`, semicolons, LF line endings. `prettier-plugin-organize-imports` removes unused imports and sorts the rest — do not hand-curate import order; let the formatter do it.
+- **ESLint** (`eslint.config.mjs`): inline `import type { … }` for type-only imports (`consistent-type-imports`), `type` aliases over `interface` (`consistent-type-definitions`), exhaustive switches on discriminated unions (`switch-exhaustiveness-check`) — this catches missing `ActionType` / effect `kind` / event `kind` cases. Floating promises, misused promises, and `async` functions with no `await` are errors in `*.ts` files.
+- **`eslint-config-prettier`** is loaded last so style rules do not fight Prettier — if a rule looks redundant with formatting, it is intentionally disabled.
+
+The Angular app (`apps/mtg-trader`) additionally enforces standalone components and `@if/@for` control-flow templates over `*ngIf`/`*ngFor`.
 
 ## TypeScript build quirks
 

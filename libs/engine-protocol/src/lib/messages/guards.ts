@@ -1,7 +1,6 @@
 import type { ClientMessage } from './client-to-server';
 
-const isObject = (v: unknown): v is Record<string, unknown> =>
-  typeof v === 'object' && v !== null;
+const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
 
 export const isClientMessage = (raw: unknown): raw is ClientMessage => {
   if (!isObject(raw)) return false;

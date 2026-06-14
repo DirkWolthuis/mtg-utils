@@ -10,10 +10,7 @@ import { makeStackItemId } from '../../model/types';
 export const nextStackItemId = (state: GameState, cardId: string): StackItemId =>
   makeStackItemId(`s-t${state.turn}-${state.stack.length + 1}-${cardId}`);
 
-export const requireStep = (
-  state: GameState,
-  allowed: GameState['step'][],
-): string | null => {
+export const requireStep = (state: GameState, allowed: GameState['step'][]): string | null => {
   if (allowed.includes(state.step)) {
     return null;
   }
@@ -31,17 +28,12 @@ export const requireActive = (
 };
 
 /** Sorcery speed: caster is active player, has priority, in a main phase, with empty stack. */
-export const sorcerySpeed = (
-  state: GameState,
-  playerId: GameState['activePlayer'],
-): boolean =>
+export const sorcerySpeed = (state: GameState, playerId: GameState['activePlayer']): boolean =>
   state.activePlayer === playerId &&
   state.priorityPlayer === playerId &&
   (state.step === 'main1' || state.step === 'main2') &&
   state.stack.length === 0;
 
 /** Instant speed: caster has priority. That's it. */
-export const instantSpeed = (
-  state: GameState,
-  playerId: GameState['activePlayer'],
-): boolean => state.priorityPlayer === playerId;
+export const instantSpeed = (state: GameState, playerId: GameState['activePlayer']): boolean =>
+  state.priorityPlayer === playerId;

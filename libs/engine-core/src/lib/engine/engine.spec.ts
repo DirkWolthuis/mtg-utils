@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { setupGame } from './setup';
-import { createDefaultEngine } from './default-engine';
+import type { Action } from '../actions/action';
+import { ActionType } from '../actions/action';
+import type { GameState } from '../model/game-state';
 import {
   makeCardDefinitionId,
   makeGameId,
@@ -8,9 +9,8 @@ import {
   type CardInstanceId,
   type PlayerId,
 } from '../model/types';
-import type { GameState } from '../model/game-state';
-import type { Action } from '../actions/action';
-import { ActionType } from '../actions/action';
+import { createDefaultEngine } from './default-engine';
+import { setupGame } from './setup';
 
 const FOREST = makeCardDefinitionId('forest');
 const MOUNTAIN = makeCardDefinitionId('mountain');
@@ -31,18 +31,40 @@ const startBasicGame = (): { state: GameState; engine: ReturnType<typeof createD
         id: P1,
         name: 'A',
         decklist: [
-          FOREST, FOREST, FOREST, MOUNTAIN, MOUNTAIN,
-          BEARS, BEARS, BEARS, BEARS, BEARS,
-          BOLT, BOLT, SALVE, INSTANT_BOLT,
+          FOREST,
+          FOREST,
+          FOREST,
+          MOUNTAIN,
+          MOUNTAIN,
+          BEARS,
+          BEARS,
+          BEARS,
+          BEARS,
+          BEARS,
+          BOLT,
+          BOLT,
+          SALVE,
+          INSTANT_BOLT,
         ],
       },
       {
         id: P2,
         name: 'B',
         decklist: [
-          MOUNTAIN, MOUNTAIN, MOUNTAIN, FOREST, FOREST,
-          BEARS, BEARS, BEARS, BEARS, BEARS,
-          BOLT, BOLT, SALVE, INSTANT_BOLT,
+          MOUNTAIN,
+          MOUNTAIN,
+          MOUNTAIN,
+          FOREST,
+          FOREST,
+          BEARS,
+          BEARS,
+          BEARS,
+          BEARS,
+          BEARS,
+          BOLT,
+          BOLT,
+          SALVE,
+          INSTANT_BOLT,
         ],
       },
     ],
@@ -57,18 +79,6 @@ const findInHand = (
 ): CardInstanceId | undefined => {
   for (const id of state.players[playerId].hand) {
     if (state.cards[id].definitionId === defId) return id;
-  }
-  return undefined;
-};
-
-const findOnBattlefield = (
-  state: GameState,
-  controllerId: PlayerId,
-  defId: ReturnType<typeof makeCardDefinitionId>,
-): CardInstanceId | undefined => {
-  for (const id of state.battlefield) {
-    const c = state.cards[id];
-    if (c.controllerId === controllerId && c.definitionId === defId) return id;
   }
   return undefined;
 };
@@ -130,7 +140,11 @@ describe('engine', () => {
     const start = startBasicGame();
     const active = start.state.activePlayer;
     const { state, cardId: forestId } = ensureInHand(start.state, active, FOREST);
-    const next = apply(start.engine, state, { type: ActionType.PlayLand, playerId: active, cardId: forestId });
+    const next = apply(start.engine, state, {
+      type: ActionType.PlayLand,
+      playerId: active,
+      cardId: forestId,
+    });
     expect(next.players[active].landsPlayedThisTurn).toBe(1);
     expect(next.cards[forestId].zone).toBe('battlefield');
   });
@@ -182,7 +196,10 @@ describe('engine', () => {
       ...seated.state,
       players: {
         ...seated.state.players,
-        [active]: { ...seated.state.players[active], manaPool: { W: 0, U: 0, B: 0, R: 1, G: 0, C: 1 } },
+        [active]: {
+          ...seated.state.players[active],
+          manaPool: { W: 0, U: 0, B: 0, R: 1, G: 0, C: 1 },
+        },
       },
     };
 
@@ -209,7 +226,7 @@ describe('engine', () => {
     expect(s.cards[boltId].zone).toBe('graveyard');
   });
 
-  it('instant can be cast by the non-active player during the active player\'s turn', () => {
+  it("instant can be cast by the non-active player during the active player's turn", () => {
     const start = startBasicGame();
     const active = start.state.activePlayer;
     const opponent = active === P1 ? P2 : P1;
@@ -221,7 +238,10 @@ describe('engine', () => {
       ...seated.state,
       players: {
         ...seated.state.players,
-        [opponent]: { ...seated.state.players[opponent], manaPool: { W: 0, U: 0, B: 0, R: 1, G: 0, C: 0 } },
+        [opponent]: {
+          ...seated.state.players[opponent],
+          manaPool: { W: 0, U: 0, B: 0, R: 1, G: 0, C: 0 },
+        },
       },
     };
     // Active player passes priority so opponent has priority
@@ -253,9 +273,7 @@ describe('engine', () => {
 
     // Drive a card_drawn event directly. Choose the top of the library.
     const drawnId = state.players[active].library[0]!;
-    const result = engine.drain(state, [
-      { kind: 'card_drawn', playerId: active, cardId: drawnId },
-    ]);
+    const result = engine.drain(state, [{ kind: 'card_drawn', playerId: active, cardId: drawnId }]);
     expect(result.state.cards[drawnId].zone).toBe('hand');
     expect(result.state.players[active].hand).toContain(drawnId);
 
@@ -277,8 +295,14 @@ describe('engine', () => {
       ...seatedInst.state,
       players: {
         ...seatedInst.state.players,
-        [active]: { ...seatedInst.state.players[active], manaPool: { W: 0, U: 0, B: 0, R: 1, G: 0, C: 1 } },
-        [opponent]: { ...seatedInst.state.players[opponent], manaPool: { W: 0, U: 0, B: 0, R: 1, G: 0, C: 0 } },
+        [active]: {
+          ...seatedInst.state.players[active],
+          manaPool: { W: 0, U: 0, B: 0, R: 1, G: 0, C: 1 },
+        },
+        [opponent]: {
+          ...seatedInst.state.players[opponent],
+          manaPool: { W: 0, U: 0, B: 0, R: 1, G: 0, C: 0 },
+        },
       },
     };
 
