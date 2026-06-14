@@ -30,9 +30,9 @@ export const validateTapLandForMana = (
     return err(`land cannot produce ${action.color}`);
   }
   return ok<GameEvent[]>([
-    { kind: 'permanent_tapped', cardId: card.id },
+    { type: 'permanent_tapped', cardId: card.id },
     {
-      kind: 'mana_produced',
+      type: 'mana_produced',
       playerId: action.playerId,
       color: action.color,
       amount: 1,

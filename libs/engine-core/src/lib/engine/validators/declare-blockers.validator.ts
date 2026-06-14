@@ -50,14 +50,14 @@ export const validateDeclareBlockers = (
     }
 
     events.push({
-      kind: 'blocker_declared',
+      type: 'blocker_declared',
       blockerId: a.blockerId,
       attackerId: a.attackerId,
     });
   }
 
   events.push({
-    kind: 'step_advanced',
+    type: 'step_advanced',
     from: 'declare_blockers',
     to: 'combat_damage',
     turn: state.turn,

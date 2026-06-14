@@ -10,5 +10,5 @@ export const healingSalve: CardDefinition = {
   manaCost: { W: 1 },
   cmc: 1,
   keywords: [],
-  effects: [{ kind: 'gain_life', amount: 3 }],
+  effects: [{ type: 'gain_life', amount: 3 }],
 };

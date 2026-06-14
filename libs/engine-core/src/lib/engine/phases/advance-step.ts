@@ -23,12 +23,12 @@ const intrinsicForStep = (state: GameState, step: Step): GameEvent[] => {
 const intrinsicUntap = (state: GameState): GameEvent[] => {
   const active = state.activePlayer;
   const events: GameEvent[] = [];
-  events.push({ kind: 'lands_played_reset', playerId: active });
+  events.push({ type: 'lands_played_reset', playerId: active });
   for (const id of state.battlefield) {
     const c = state.cards[id];
     if (c.controllerId !== active) continue;
-    if (c.tapped) events.push({ kind: 'permanent_untapped', cardId: id });
-    if (c.summoningSick) events.push({ kind: 'summoning_sickness_cleared', cardId: id });
+    if (c.tapped) events.push({ type: 'permanent_untapped', cardId: id });
+    if (c.summoningSick) events.push({ type: 'summoning_sickness_cleared', cardId: id });
   }
   return events;
 };
@@ -40,19 +40,19 @@ const intrinsicDraw = (state: GameState): GameEvent[] => {
   const lib = state.players[active].library;
   if (lib.length === 0) {
     return [
-      { kind: 'draw_attempted_empty', playerId: active },
-      { kind: 'player_lost', playerId: active, reason: 'deck_out' },
+      { type: 'draw_attempted_empty', playerId: active },
+      { type: 'player_lost', playerId: active, reason: 'deck_out' },
     ];
   }
-  return [{ kind: 'card_drawn', playerId: active, cardId: lib[0] as CardInstanceId }];
+  return [{ type: 'card_drawn', playerId: active, cardId: lib[0] as CardInstanceId }];
 };
 
 const intrinsicCleanup = (state: GameState): GameEvent[] => {
   const events: GameEvent[] = [];
   for (const pid of state.playerOrder) {
-    events.push({ kind: 'mana_pool_emptied', playerId: pid });
+    events.push({ type: 'mana_pool_emptied', playerId: pid });
   }
-  events.push({ kind: 'damage_cleared_at_cleanup' });
+  events.push({ type: 'damage_cleared_at_cleanup' });
   return events;
 };
 
@@ -60,7 +60,7 @@ const turnStartedFor = (state: GameState, justEntered: Step, fromStep: Step): Ga
   // turn rolls when cleanup → untap
   if (fromStep === 'cleanup' && justEntered === 'untap') {
     const newActive: PlayerId = otherPlayer(state, state.activePlayer);
-    return [{ kind: 'turn_started', turn: state.turn + 1, activePlayer: newActive }];
+    return [{ type: 'turn_started', turn: state.turn + 1, activePlayer: newActive }];
   }
   return [];
 };
@@ -69,7 +69,7 @@ const skippableEmptyDeclareSteps = (state: GameState, step: Step): GameEvent[] =
   if (step === 'declare_blockers' && state.combat.attackers.length === 0) {
     return [
       {
-        kind: 'step_advanced',
+        type: 'step_advanced',
         from: 'declare_blockers',
         to: 'combat_damage',
         turn: state.turn,
@@ -81,7 +81,7 @@ const skippableEmptyDeclareSteps = (state: GameState, step: Step): GameEvent[] =
 
 export const registerStepAdvanceSubscriber = (bus: EventBus): void => {
   bus.on('step_advanced', (state, event) => {
-    if (event.kind !== 'step_advanced') return [];
+    if (event.type !== 'step_advanced') return [];
     // First: any turn_started event for the *new* state
     const startedEvents = turnStartedFor(state, event.to, event.from);
     // Then: the intrinsic events for the new step

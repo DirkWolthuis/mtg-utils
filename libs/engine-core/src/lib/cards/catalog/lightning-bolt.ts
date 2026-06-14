@@ -10,5 +10,5 @@ export const lightningBolt: CardDefinition = {
   manaCost: { R: 1 },
   cmc: 1,
   keywords: [],
-  effects: [{ kind: 'deal_damage_to_any', amount: 3 }],
+  effects: [{ type: 'deal_damage_to_any', amount: 3 }],
 };

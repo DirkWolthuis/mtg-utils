@@ -12,5 +12,5 @@ export const validatePassPriority = (
     return err(`player ${action.playerId} does not have priority`);
   }
   const to = otherPlayer(state, action.playerId);
-  return ok<GameEvent[]>([{ kind: 'priority_passed', from: action.playerId, to }]);
+  return ok<GameEvent[]>([{ type: 'priority_passed', from: action.playerId, to }]);
 };

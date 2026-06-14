@@ -15,9 +15,9 @@ export const checkStateBasedActions = (state: GameState): GameEvent[] => {
     if (!def.types.includes('creature')) continue;
     const toughness = (def.toughness ?? 0) + c.toughnessMod;
     if (c.damage > 0 && c.damage >= toughness) {
-      events.push({ kind: 'creature_died', cardId: id });
+      events.push({ type: 'creature_died', cardId: id });
       events.push({
-        kind: 'card_entered_zone',
+        type: 'card_entered_zone',
         cardId: id,
         from: 'battlefield',
         to: 'graveyard',
@@ -31,7 +31,7 @@ export const checkStateBasedActions = (state: GameState): GameEvent[] => {
     const p = state.players[pid];
     if (p.life <= 0 && !losers.has(pid)) {
       losers.add(pid);
-      events.push({ kind: 'player_lost', playerId: pid, reason: 'life' });
+      events.push({ type: 'player_lost', playerId: pid, reason: 'life' });
     }
   }
 
@@ -40,7 +40,7 @@ export const checkStateBasedActions = (state: GameState): GameEvent[] => {
   const allLosers = new Set([...state.losers, ...Array.from(losers)]);
   const survivors = state.playerOrder.filter((p) => !allLosers.has(p));
   if (allLosers.size > 0 && survivors.length <= 1) {
-    events.push({ kind: 'game_ended', winner: survivors[0] ?? null });
+    events.push({ type: 'game_ended', winner: survivors[0] ?? null });
   }
 
   return events;

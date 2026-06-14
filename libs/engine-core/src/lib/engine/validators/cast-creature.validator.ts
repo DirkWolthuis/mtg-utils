@@ -52,14 +52,14 @@ export const validateCastCreature = (
   };
 
   return ok<GameEvent[]>([
-    { kind: 'mana_spent', playerId: action.playerId, spent: action.manaSpent },
+    { type: 'mana_spent', playerId: action.playerId, spent: action.manaSpent },
     {
-      kind: 'card_entered_zone',
+      type: 'card_entered_zone',
       cardId: card.id,
       from: 'hand',
       to: 'stack',
       causedBy: action.playerId,
     },
-    { kind: 'spell_put_on_stack', item },
+    { type: 'spell_put_on_stack', item },
   ]);
 };

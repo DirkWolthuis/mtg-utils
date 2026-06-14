@@ -5,4 +5,4 @@ import type { GameState } from '../../model/game-state';
 import type { GameEvent } from '../events';
 
 export const validateConcede = (_state: GameState, action: Concede): Result<GameEvent[], string> =>
-  ok<GameEvent[]>([{ kind: 'player_lost', playerId: action.playerId, reason: 'concede' }]);
+  ok<GameEvent[]>([{ type: 'player_lost', playerId: action.playerId, reason: 'concede' }]);

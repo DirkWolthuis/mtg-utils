@@ -29,16 +29,16 @@ export const registerPriorityLoop = (bus: EventBus): void => {
   });
 
   bus.on('stack_item_resolved', (state) => [
-    { kind: 'priority_reset', to: state.activePlayer, reason: 'stack_changed' },
+    { type: 'priority_reset', to: state.activePlayer, reason: 'stack_changed' },
   ]);
 
   bus.on('step_advanced', (state) => [
-    { kind: 'priority_reset', to: state.activePlayer, reason: 'step_started' },
+    { type: 'priority_reset', to: state.activePlayer, reason: 'step_started' },
   ]);
 };
 
 const advanceStep = (state: GameState): GameEvent[] => {
   const idx = STEP_ORDER.indexOf(state.step);
   const to = STEP_ORDER[(idx + 1) % STEP_ORDER.length];
-  return [{ kind: 'step_advanced', from: state.step, to, turn: state.turn }];
+  return [{ type: 'step_advanced', from: state.step, to, turn: state.turn }];
 };

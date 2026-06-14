@@ -9,10 +9,10 @@ export const drawCards: EffectHandler<DrawCards> = (effect, ctx) => {
   for (let i = 0; i < effect.count; i++) {
     const cardId = library[i];
     if (cardId === undefined) {
-      events.push({ kind: 'draw_attempted_empty', playerId: ctx.casterId });
+      events.push({ type: 'draw_attempted_empty', playerId: ctx.casterId });
       break;
     }
-    events.push({ kind: 'card_drawn', playerId: ctx.casterId, cardId });
+    events.push({ type: 'card_drawn', playerId: ctx.casterId, cardId });
   }
   return ok(events);
 };

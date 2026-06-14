@@ -105,7 +105,7 @@ const printIncoming = (msg: ServerMessage): void => {
         } else if ('playerId' in e) {
           summary = ` ${(e as { playerId: string }).playerId}`;
         }
-        console.log(`   · ${e.kind}${summary}`);
+        console.log(`   · ${e.type}${summary}`);
       }
       return;
     case 'rejected_action':
@@ -323,7 +323,7 @@ const main = async (): Promise<void> => {
           targetPlayer = opts.target as PlayerId;
         }
         const targets = (def.effects ?? [])
-          .filter((e) => e.kind === 'deal_damage_to_any')
+          .filter((e) => e.type === 'deal_damage_to_any')
           .map(() => ({ kind: 'player' as const, playerId: targetPlayer }));
         const type = def.types.includes('instant')
           ? ActionType.CastInstant
