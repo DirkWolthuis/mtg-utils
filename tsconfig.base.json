@@ -13,7 +13,11 @@
     "lib": ["es2020", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
-    "paths": {}
+    "paths": {
+      "@mtg-utils/engine-core": ["./libs/engine-core/src/index.ts"],
+      "@mtg-utils/engine-protocol": ["./libs/engine-protocol/src/index.ts"],
+      "@mtg-utils/engine-util": ["./libs/engine-util/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }
