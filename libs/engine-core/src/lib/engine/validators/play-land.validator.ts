@@ -33,9 +33,9 @@ export const validatePlayLand = (
   }
 
   return ok<GameEvent[]>([
-    { kind: 'land_played', playerId: action.playerId, cardId: card.id },
+    { type: 'land_played', playerId: action.playerId, cardId: card.id },
     {
-      kind: 'card_entered_zone',
+      type: 'card_entered_zone',
       cardId: card.id,
       from: 'hand',
       to: 'battlefield',

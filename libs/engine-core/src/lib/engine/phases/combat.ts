@@ -51,21 +51,21 @@ const damageForPass = (state: GameState, pass: 'first_strike' | 'regular'): Game
     if (blockers.length === 0) {
       // Unblocked: damage to defending player
       events.push({
-        kind: 'damage_dealt',
+        type: 'damage_dealt',
         sourceCardId: attackerId,
         target: { kind: 'player', playerId: attack.defenderId },
         amount: attackerPT.power,
         combat: true,
       });
       events.push({
-        kind: 'life_changed',
+        type: 'life_changed',
         playerId: attack.defenderId,
         delta: -attackerPT.power,
         reason: 'damage',
       });
       if (hasKeyword(state, attackerId, 'lifelink')) {
         events.push({
-          kind: 'life_changed',
+          type: 'life_changed',
           playerId: state.cards[attackerId].controllerId,
           delta: attackerPT.power,
           reason: 'lifelink',
@@ -85,7 +85,7 @@ const damageForPass = (state: GameState, pass: 'first_strike' | 'regular'): Game
         const assigned = Math.min(remaining, lethalNeeded);
         if (assigned > 0) {
           events.push({
-            kind: 'damage_dealt',
+            type: 'damage_dealt',
             sourceCardId: attackerId,
             target: { kind: 'permanent', cardId: b.blockerId },
             amount: assigned,
@@ -93,7 +93,7 @@ const damageForPass = (state: GameState, pass: 'first_strike' | 'regular'): Game
           });
           if (hasKeyword(state, attackerId, 'lifelink')) {
             events.push({
-              kind: 'life_changed',
+              type: 'life_changed',
               playerId: state.cards[attackerId].controllerId,
               delta: assigned,
               reason: 'lifelink',
@@ -105,21 +105,21 @@ const damageForPass = (state: GameState, pass: 'first_strike' | 'regular'): Game
 
       if (aTrample && remaining > 0) {
         events.push({
-          kind: 'damage_dealt',
+          type: 'damage_dealt',
           sourceCardId: attackerId,
           target: { kind: 'player', playerId: attack.defenderId },
           amount: remaining,
           combat: true,
         });
         events.push({
-          kind: 'life_changed',
+          type: 'life_changed',
           playerId: attack.defenderId,
           delta: -remaining,
           reason: 'damage',
         });
         if (hasKeyword(state, attackerId, 'lifelink')) {
           events.push({
-            kind: 'life_changed',
+            type: 'life_changed',
             playerId: state.cards[attackerId].controllerId,
             delta: remaining,
             reason: 'lifelink',
@@ -136,7 +136,7 @@ const damageForPass = (state: GameState, pass: 'first_strike' | 'regular'): Game
         const bPT = ptOf(state, b.blockerId);
         if (bPT.power <= 0) continue;
         events.push({
-          kind: 'damage_dealt',
+          type: 'damage_dealt',
           sourceCardId: b.blockerId,
           target: { kind: 'permanent', cardId: attackerId },
           amount: bPT.power,
@@ -144,7 +144,7 @@ const damageForPass = (state: GameState, pass: 'first_strike' | 'regular'): Game
         });
         if (hasKeyword(state, b.blockerId, 'lifelink')) {
           events.push({
-            kind: 'life_changed',
+            type: 'life_changed',
             playerId: state.cards[b.blockerId].controllerId,
             delta: bPT.power,
             reason: 'lifelink',
@@ -165,5 +165,5 @@ export const computeCombatDamageEvents = (state: GameState): GameEvent[] => {
   // longer on the battlefield becomes a no-op via applyEvent's lookup).
   const fs = damageForPass(state, 'first_strike');
   const reg = damageForPass(state, 'regular');
-  return [...fs, { kind: 'combat_damage_marked' }, ...reg];
+  return [...fs, { type: 'combat_damage_marked' }, ...reg];
 };

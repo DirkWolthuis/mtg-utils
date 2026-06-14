@@ -15,7 +15,7 @@ export const dealDamageToAny: EffectHandler<DealDamageToAny> = (effect, ctx: Eff
   }
   const events: GameEvent[] = [
     {
-      kind: 'damage_dealt',
+      type: 'damage_dealt',
       sourceCardId: ctx.sourceCardId,
       target,
       amount: effect.amount,
@@ -24,7 +24,7 @@ export const dealDamageToAny: EffectHandler<DealDamageToAny> = (effect, ctx: Eff
   ];
   if (target.kind === 'player') {
     events.push({
-      kind: 'life_changed',
+      type: 'life_changed',
       playerId: target.playerId,
       delta: -effect.amount,
       reason: 'damage',

@@ -10,5 +10,5 @@ export const lightningStrike: CardDefinition = {
   manaCost: { R: 1, generic: 1 },
   cmc: 2,
   keywords: [],
-  effects: [{ kind: 'deal_damage_to_any', amount: 3 }],
+  effects: [{ type: 'deal_damage_to_any', amount: 3 }],
 };

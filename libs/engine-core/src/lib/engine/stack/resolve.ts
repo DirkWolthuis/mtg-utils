@@ -17,7 +17,7 @@ import type { GameEvent } from '../events';
  */
 export const resolveStackItem = (state: GameState, item: StackItem): GameEvent[] => {
   const card = state.cards[item.cardId];
-  if (!card) return [{ kind: 'stack_item_resolved', stackItemId: item.id }];
+  if (!card) return [{ type: 'stack_item_resolved', stackItemId: item.id }];
   const def = getCardDefinition(card.definitionId);
 
   const events: GameEvent[] = [];
@@ -30,7 +30,7 @@ export const resolveStackItem = (state: GameState, item: StackItem): GameEvent[]
 
   if (isPermanent) {
     events.push({
-      kind: 'card_entered_zone',
+      type: 'card_entered_zone',
       cardId: card.id,
       from: 'stack',
       to: 'battlefield',
@@ -39,7 +39,7 @@ export const resolveStackItem = (state: GameState, item: StackItem): GameEvent[]
     // Instant / sorcery: run effect descriptors against current state, then graveyard.
     let targetIdx = 0;
     for (const effect of item.effects) {
-      const target = effect.kind === 'deal_damage_to_any' ? item.targets[targetIdx++] : undefined;
+      const target = effect.type === 'deal_damage_to_any' ? item.targets[targetIdx++] : undefined;
       const ctx = {
         state,
         casterId: item.controllerId,
@@ -51,13 +51,13 @@ export const resolveStackItem = (state: GameState, item: StackItem): GameEvent[]
       // Illegal-at-resolve errors are swallowed — analogous to fizzling.
     }
     events.push({
-      kind: 'card_entered_zone',
+      type: 'card_entered_zone',
       cardId: card.id,
       from: 'stack',
       to: 'graveyard',
     });
   }
 
-  events.push({ kind: 'stack_item_resolved', stackItemId: item.id });
+  events.push({ type: 'stack_item_resolved', stackItemId: item.id });
   return events;
 };

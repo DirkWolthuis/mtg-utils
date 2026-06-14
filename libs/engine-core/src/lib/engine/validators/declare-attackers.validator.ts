@@ -44,17 +44,17 @@ export const validateDeclareAttackers = (
     }
 
     if (!def.keywords.includes('vigilance')) {
-      events.push({ kind: 'permanent_tapped', cardId: id });
+      events.push({ type: 'permanent_tapped', cardId: id });
     }
     events.push({
-      kind: 'attacker_declared',
+      type: 'attacker_declared',
       attackerId: id,
       defenderId: defender,
     });
   }
 
   events.push({
-    kind: 'step_advanced',
+    type: 'step_advanced',
     from: 'declare_attackers',
     to: 'declare_blockers',
     turn: state.turn,

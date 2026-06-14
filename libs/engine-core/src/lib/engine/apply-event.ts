@@ -49,7 +49,7 @@ const nextStep = (current: Step): { step: Step; wraps: boolean } => {
 };
 
 export const applyEvent = (state: GameState, event: GameEvent): GameState => {
-  switch (event.kind) {
+  switch (event.type) {
     case 'card_entered_zone': {
       const card = state.cards[event.cardId];
       const owner = state.players[card.ownerId];

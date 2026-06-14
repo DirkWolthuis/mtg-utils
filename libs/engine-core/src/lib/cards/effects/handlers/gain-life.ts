@@ -5,7 +5,7 @@ import type { GainLife } from '../effect-types';
 export const gainLife: EffectHandler<GainLife> = (effect, ctx) =>
   ok([
     {
-      kind: 'life_changed',
+      type: 'life_changed',
       playerId: ctx.casterId,
       delta: effect.amount,
       reason: 'effect',

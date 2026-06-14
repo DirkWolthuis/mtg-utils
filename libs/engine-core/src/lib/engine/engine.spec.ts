@@ -273,7 +273,7 @@ describe('engine', () => {
 
     // Drive a card_drawn event directly. Choose the top of the library.
     const drawnId = state.players[active].library[0]!;
-    const result = engine.drain(state, [{ kind: 'card_drawn', playerId: active, cardId: drawnId }]);
+    const result = engine.drain(state, [{ type: 'card_drawn', playerId: active, cardId: drawnId }]);
     expect(result.state.cards[drawnId].zone).toBe('hand');
     expect(result.state.players[active].hand).toContain(drawnId);
 
