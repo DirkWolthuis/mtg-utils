@@ -1,0 +1,50 @@
+{
+  "name": "game-ui",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "gui",
+  "sourceRoot": "apps/game-ui/src",
+  "tags": ["app"],
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/game-ui",
+        "browser": "apps/game-ui/src/main.ts",
+        "tsConfig": "apps/game-ui/tsconfig.app.json",
+        "styles": ["apps/game-ui/src/styles.css"]
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            { "type": "initial", "maximumWarning": "500kb", "maximumError": "1mb" },
+            { "type": "anyComponentStyle", "maximumWarning": "4kb", "maximumError": "8kb" }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@angular/build:dev-server",
+      "options": {
+        "port": 5757
+      },
+      "configurations": {
+        "production": { "buildTarget": "game-ui:build:production" },
+        "development": { "buildTarget": "game-ui:build:development" }
+      },
+      "defaultConfiguration": "development"
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

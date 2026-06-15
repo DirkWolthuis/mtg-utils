@@ -7,6 +7,7 @@
     "test": "nx run-many -t test -p engine-util engine-core engine-server",
     "serve": "nx serve engine-server",
     "serve:trader": "nx serve mtg-trader",
+    "serve:game-ui": "nx serve game-ui",
     "repl": "nx run engine-server:repl --",
     "repl:p1": "nx run engine-server:repl -- --player p1 --name Alice --game g1",
     "repl:p2": "nx run engine-server:repl -- --player p2 --name Bob --game g1",

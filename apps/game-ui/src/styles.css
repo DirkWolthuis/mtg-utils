@@ -1,0 +1,148 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: monospace;
+  font-size: 13px;
+  margin: 8px;
+  background: #1a1a1a;
+  color: #e0e0e0;
+}
+
+button {
+  margin: 2px;
+  padding: 2px 6px;
+  cursor: pointer;
+  background: #333;
+  color: #e0e0e0;
+  border: 1px solid #555;
+}
+
+button:hover {
+  background: #444;
+}
+
+button.active {
+  background: #0a4a0a;
+  border-color: #0f0;
+}
+
+input,
+select {
+  background: #2a2a2a;
+  color: #e0e0e0;
+  border: 1px solid #555;
+  padding: 2px 4px;
+  font-family: monospace;
+}
+
+section {
+  border: 1px solid #444;
+  margin: 4px 0;
+  padding: 4px 8px;
+}
+
+h3 {
+  margin: 2px 0 4px;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #aaa;
+}
+
+.status-bar {
+  background: #222;
+  padding: 4px 8px;
+  border: 1px solid #444;
+  margin-bottom: 4px;
+}
+
+.has-priority {
+  color: #0f0;
+  font-weight: bold;
+}
+
+.life {
+  margin: 2px 0;
+}
+
+.mana {
+  margin: 2px 0;
+  color: #8cf;
+}
+
+.error {
+  color: #f66;
+  margin: 2px 0;
+  padding: 2px 8px;
+  border: 1px solid #f44;
+}
+
+.card {
+  display: inline-block;
+  margin: 2px;
+  padding: 4px 6px;
+  border: 1px solid #555;
+  background: #252525;
+  vertical-align: top;
+}
+
+.card.tapped {
+  border-color: #885;
+  background: #2a2510;
+}
+
+.card.selected {
+  border-color: #0f0;
+  background: #0a2a0a;
+}
+
+.card .label {
+  display: block;
+  font-weight: bold;
+}
+
+.card .meta {
+  color: #888;
+  font-size: 11px;
+}
+
+.card .actions {
+  margin-top: 2px;
+}
+
+.log-lines {
+  height: 120px;
+  overflow-y: auto;
+  background: #111;
+  padding: 4px;
+  font-size: 11px;
+  color: #aaa;
+}
+
+.hint {
+  color: #fa0;
+  margin: 2px 0;
+  font-size: 12px;
+}
+
+.join-form {
+  max-width: 300px;
+  padding: 16px;
+  border: 1px solid #555;
+}
+
+.join-form label {
+  display: block;
+  margin: 6px 0;
+}
+
+.join-form input {
+  width: 100%;
+  margin-top: 2px;
+}
+
+.join-form button {
+  margin-top: 10px;
+  padding: 4px 12px;
+}
