@@ -72,41 +72,34 @@ export class Game {
   protected joinGameId = 'g1';
   protected joinPort = 8080;
 
-  protected readonly autoPass = signal(false);
   protected readonly selectedAttackers = signal<Set<CardInstanceId>>(new Set());
   protected readonly blockerAssignments = signal<Map<CardInstanceId, CardInstanceId>>(new Map());
 
   private lastAutoPassedView: PlayerView | null = null;
-  private skipUntilTurn = signal<number | null>(null);
+  private readonly skipUntilTurn = signal<number | null>(null);
+
+  protected readonly isSkipping = computed(() => this.skipUntilTurn() !== null);
 
   constructor() {
     effect(() => {
       const v = this.ws.view();
       const rejection = this.ws.lastRejection();
 
-      // On rejection, reset guard so auto-pass can retry
       if (rejection !== null) {
         this.lastAutoPassedView = null;
       }
 
       if (!v) return;
 
-      // Clear turn-skip when turn rolls over
       const skip = this.skipUntilTurn();
       if (skip !== null && v.turn !== skip) {
         this.skipUntilTurn.set(null);
       }
 
-      const skipping = this.skipUntilTurn() !== null;
-      const ap = this.autoPass();
-      if (!ap && !skipping) return;
+      if (this.skipUntilTurn() === null) return;
       if (v === this.lastAutoPassedView) return;
       if (v.status !== 'active') return;
       if (v.priorityPlayer !== v.forPlayer) return;
-      if (!skipping) {
-        if (v.step === 'declare_attackers' && v.activePlayer === v.forPlayer) return;
-        if (v.step === 'declare_blockers' && v.activePlayer !== v.forPlayer) return;
-      }
       this.lastAutoPassedView = v;
       this.ws.submit({ type: ActionType.PassPriority, playerId: v.forPlayer });
     });
@@ -178,11 +171,6 @@ export class Game {
     const v = this.ws.view();
     if (!v) return;
     this.ws.submit({ type: ActionType.Concede, playerId: v.forPlayer });
-  }
-
-  protected toggleAutoPass(): void {
-    this.autoPass.update((v) => !v);
-    this.lastAutoPassedView = null;
   }
 
   protected skipTurn(): void {

@@ -49,17 +49,7 @@
 <!-- Rejection error -->
 @if (ws.lastRejection()) {
 <div class="error">Rejected: {{ ws.lastRejection() }}</div>
-}
-
-<!-- Auto-pass pause hint -->
-@if (autoPass() && hasPriority()) { @if (v.step === 'declare_attackers' && v.activePlayer ===
-v.forPlayer) {
-<div class="hint">Auto-pass paused — declare attackers or click Pass Priority to skip combat.</div>
-} @else if (v.step === 'declare_blockers' && v.activePlayer !== v.forPlayer) {
-<div class="hint">
-  Auto-pass paused — declare blockers or click Pass Priority / Declare Blockers.
-</div>
-} } @if (!hasPriority() && v.priorityPlayer) {
+} @if (!hasPriority() && v.priorityPlayer) {
 <div class="hint">
   Waiting for {{ v.priorityPlayer === v.opponent.id ? v.opponent.name : v.priorityPlayer }}…
 </div>
@@ -68,10 +58,9 @@ v.forPlayer) {
 <!-- Action buttons -->
 <div style="margin: 4px 0">
   <button [disabled]="!hasPriority()" (click)="pass()">Pass Priority</button>
-  <button [class.active]="autoPass()" (click)="toggleAutoPass()">
-    Auto-pass: {{ autoPass() ? 'ON' : 'OFF' }}
+  <button [class.active]="isSkipping()" (click)="skipTurn()">
+    Skip Turn{{ isSkipping() ? ' (active)' : '' }}
   </button>
-  <button (click)="skipTurn()">Skip Turn</button>
   <button (click)="concede()">Concede</button>
   @if (v.step === 'declare_attackers' && v.activePlayer === v.forPlayer) {
   <button (click)="declareAttackers()">

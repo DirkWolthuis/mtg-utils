@@ -132,11 +132,9 @@ const main = async (): Promise<void> => {
     ws.once('error', reject);
   });
 
-  let autoPass = false;
   let lastAutoPassedView: PlayerView | null = null;
   /**
-   * When set, auto-pass runs through ALL steps (including declare_attackers /
-   * declare_blockers) until the turn number changes. Set by skipTurn().
+   * When set, auto-passes through ALL steps until the turn number changes. Set by skipTurn().
    */
   let skipUntilTurn: number | null = null;
 
@@ -148,32 +146,16 @@ const main = async (): Promise<void> => {
     send({ kind: 'submit_action', gameId: args.game as never, action });
   };
 
-  /**
-   * Pass priority automatically if it's safe to do so:
-   *   - only when this player has priority
-   *   - never during declare_attackers (you may want to attack) if you're the active player
-   *   - never during declare_blockers if you're the defender
-   *   - the above two stops are bypassed while skipTurn() is active
-   *
-   * Stack items still trigger auto-pass — both REPLs with `auto(true)` will
-   * keep cycling until the stack empties and the step advances.
-   */
   const tryAutoPass = (): void => {
     if (!view) return;
-    // Clear the turn-skip as soon as the turn rolls over.
     if (skipUntilTurn !== null && view.turn !== skipUntilTurn) {
       console.log(`turn ${skipUntilTurn} skipped`);
       skipUntilTurn = null;
     }
-    const skipping = skipUntilTurn !== null;
-    if (!autoPass && !skipping) return;
+    if (skipUntilTurn === null) return;
     if (view === lastAutoPassedView) return;
     if (view.status !== 'active') return;
     if (view.priorityPlayer !== playerId) return;
-    if (!skipping) {
-      if (view.step === 'declare_attackers' && view.activePlayer === playerId) return;
-      if (view.step === 'declare_blockers' && view.activePlayer !== playerId) return;
-    }
     lastAutoPassedView = view;
     submit({ type: ActionType.PassPriority, playerId });
   };
@@ -406,27 +388,9 @@ const main = async (): Promise<void> => {
     /** Concede the game. */
     concede: () => submit({ type: ActionType.Concede, playerId }),
     /**
-     * Toggle auto-pass. With no args, prints current state.
-     * When on, the REPL auto-sends pass_priority whenever this player gains
-     * priority — except during your own declare_attackers (active) or your
-     * declare_blockers (defender), where you might want to act.
-     */
-    auto: (enabled?: boolean) => {
-      if (enabled === undefined) {
-        console.log(`auto-pass is ${autoPass ? 'on' : 'off'}`);
-        return autoPass;
-      }
-      autoPass = !!enabled;
-      lastAutoPassedView = null;
-      console.log(`auto-pass ${autoPass ? 'on' : 'off'}`);
-      tryAutoPass();
-      return autoPass;
-    },
-    /**
      * Skip the rest of the current turn: auto-passes through every step
      * (including declare_attackers and declare_blockers) until the turn
-     * number changes. Useful for quickly advancing past uninteresting turns
-     * during debugging. Does not affect the auto-pass setting for future turns.
+     * number changes.
      */
     skipTurn: () => {
       const v = requireView();
@@ -457,9 +421,6 @@ Actions (take card ids, not names):
   concede()                       — concede the game
 
 Debugging:
-  auto(true)                      — auto-pass priority (skips routine waits; stops at combat declares)
-  auto(false)                     — turn off auto-pass
-  auto()                          — show current state
   skipTurn()                      — skip the rest of this turn (passes through all steps, including combat declares)
 `);
     },
