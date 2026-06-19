@@ -1,16 +1,16 @@
 import {
   ActionType,
+  DEFAULT_DECK,
+  computeSpent,
   getCardDefinition,
   type Action,
-  type CardDefinitionId,
   type CardInstanceId,
   type ManaColor,
-  type ManaCost,
-  type ManaPool,
   type PlayerId,
   type PlayerView,
 } from '@mtg-utils/engine-core';
 import type { ClientMessage, ServerMessage } from '@mtg-utils/engine-protocol';
+import { ClientMessageKind, ServerMessageKind } from '@mtg-utils/engine-protocol';
 import * as repl from 'node:repl';
 import { WebSocket } from 'ws';
 
@@ -35,66 +35,17 @@ const parseArgs = (): Args => {
   };
 };
 
-const DEFAULT_DECK = [
-  'forest',
-  'forest',
-  'forest',
-  'forest',
-  'forest',
-  'forest',
-  'mountain',
-  'mountain',
-  'mountain',
-  'mountain',
-  'mountain',
-  'mountain',
-  'grizzly-bears',
-  'grizzly-bears',
-  'grizzly-bears',
-  'grizzly-bears',
-  'hill-giant',
-  'hill-giant',
-  'lightning-strike',
-  'lightning-strike',
-  'healing-salve',
-] as CardDefinitionId[];
-
-const COLORS: ManaColor[] = ['W', 'U', 'B', 'R', 'G', 'C'];
-
-const computeSpent = (
-  cost: ManaCost | null,
-  pool: ManaPool,
-): Partial<Record<ManaColor, number>> => {
-  if (!cost) return {};
-  const spent: Partial<Record<ManaColor, number>> = {};
-  for (const c of COLORS) {
-    const req = cost[c] ?? 0;
-    if (req > 0) spent[c] = req;
-  }
-  let generic = cost.generic ?? 0;
-  for (const c of COLORS) {
-    if (generic <= 0) break;
-    const avail = pool[c] - (spent[c] ?? 0);
-    const use = Math.min(avail, generic);
-    if (use > 0) {
-      spent[c] = (spent[c] ?? 0) + use;
-      generic -= use;
-    }
-  }
-  return spent;
-};
-
 const printIncoming = (msg: ServerMessage): void => {
   switch (msg.kind) {
-    case 'join_ack':
+    case ServerMessageKind.JoinAck:
       console.log(`<- join_ack ready=${msg.ready}`);
       return;
-    case 'state_sync':
+    case ServerMessageKind.StateSync:
       console.log(
         `<- state_sync turn=${msg.view.turn} step=${msg.view.step} active=${msg.view.activePlayer}`,
       );
       return;
-    case 'event_batch':
+    case ServerMessageKind.EventBatch:
       console.log(
         `<- event_batch (${msg.events.length} events) turn=${msg.view.turn} step=${msg.view.step}`,
       );
@@ -108,13 +59,13 @@ const printIncoming = (msg: ServerMessage): void => {
         console.log(`   · ${e.type}${summary}`);
       }
       return;
-    case 'rejected_action':
+    case ServerMessageKind.RejectedAction:
       console.log(`<- REJECTED: ${msg.reason}`);
       return;
-    case 'game_over':
+    case ServerMessageKind.GameOver:
       console.log(`<- GAME OVER, winner=${msg.winner ?? 'draw'}`);
       return;
-    case 'server_error':
+    case ServerMessageKind.ServerError:
       console.log(`<- server_error: ${msg.message}`);
       return;
   }
@@ -143,7 +94,7 @@ const main = async (): Promise<void> => {
   };
 
   const submit = (action: Action): void => {
-    send({ kind: 'submit_action', gameId: args.game as never, action });
+    send({ kind: ClientMessageKind.SubmitAction, gameId: args.game as never, action });
   };
 
   const tryAutoPass = (): void => {
@@ -163,10 +114,11 @@ const main = async (): Promise<void> => {
   ws.on('message', (data) => {
     const msg = JSON.parse(data.toString()) as ServerMessage;
     lastMessage = msg;
-    if (msg.kind === 'state_sync' || msg.kind === 'event_batch') view = msg.view;
+    if (msg.kind === ServerMessageKind.StateSync || msg.kind === ServerMessageKind.EventBatch)
+      view = msg.view;
     // A rejected action means our last auto-pass was refused; allow a retry so
     // we don't get permanently stuck behind the lastAutoPassedView guard.
-    if (msg.kind === 'rejected_action') lastAutoPassedView = null;
+    if (msg.kind === ServerMessageKind.RejectedAction) lastAutoPassedView = null;
     printIncoming(msg);
     tryAutoPass();
   });
@@ -176,7 +128,7 @@ const main = async (): Promise<void> => {
   });
 
   send({
-    kind: 'join_game',
+    kind: ClientMessageKind.JoinGame,
     gameId: args.game as never,
     playerId,
     name: args.name,

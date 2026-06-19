@@ -1,0 +1,25 @@
+import type { CardDefinitionId } from '../../model/types';
+
+export const DEFAULT_DECK: CardDefinitionId[] = [
+  'forest',
+  'forest',
+  'forest',
+  'forest',
+  'forest',
+  'forest',
+  'mountain',
+  'mountain',
+  'mountain',
+  'mountain',
+  'mountain',
+  'mountain',
+  'grizzly-bears',
+  'grizzly-bears',
+  'grizzly-bears',
+  'grizzly-bears',
+  'hill-giant',
+  'hill-giant',
+  'lightning-strike',
+  'lightning-strike',
+  'healing-salve',
+] as CardDefinitionId[];

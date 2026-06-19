@@ -1,6 +1,31 @@
 import type { ManaColor, ManaCost, ManaPool } from '../model/types';
 
-const COLORS: ManaColor[] = ['W', 'U', 'B', 'R', 'G', 'C'];
+export const COLORS: ManaColor[] = ['W', 'U', 'B', 'R', 'G', 'C'];
+
+export const getMana = (pool: ManaPool, color: ManaColor): number => pool[color];
+
+export const computeSpent = (
+  cost: ManaCost | null,
+  pool: ManaPool,
+): Partial<Record<ManaColor, number>> => {
+  if (!cost) return {};
+  const spent: Partial<Record<ManaColor, number>> = {};
+  for (const c of COLORS) {
+    const req = cost[c] ?? 0;
+    if (req > 0) spent[c] = req;
+  }
+  let generic = cost.generic ?? 0;
+  for (const c of COLORS) {
+    if (generic <= 0) break;
+    const avail = getMana(pool, c) - (spent[c] ?? 0);
+    const use = Math.min(avail, generic);
+    if (use > 0) {
+      spent[c] = (spent[c] ?? 0) + use;
+      generic -= use;
+    }
+  }
+  return spent;
+};
 
 export const manaSpentMatchesCost = (
   cost: ManaCost,

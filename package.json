@@ -5,7 +5,7 @@
   "scripts": {
     "build": "nx run-many -t build -p engine-util engine-core engine-protocol engine-server",
     "test": "nx run-many -t test -p engine-util engine-core engine-server",
-    "serve": "nx serve engine-server",
+    "serve:game-server": "nx serve engine-server",
     "serve:trader": "nx serve mtg-trader",
     "serve:game-ui": "nx serve game-ui",
     "repl": "nx run engine-server:repl --",
