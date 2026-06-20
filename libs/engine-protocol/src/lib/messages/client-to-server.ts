@@ -1,13 +1,13 @@
 import type { Action, CardDefinitionId, GameId, PlayerId } from '@mtg-utils/engine-core';
 
-export enum ClientMessageKind {
+export enum ClientMessageType {
   JoinGame = 'join_game',
   SubmitAction = 'submit_action',
   LeaveGame = 'leave_game',
 }
 
 export type JoinGame = {
-  kind: ClientMessageKind.JoinGame;
+  type: ClientMessageType.JoinGame;
   gameId: GameId;
   playerId: PlayerId;
   name: string;
@@ -15,13 +15,13 @@ export type JoinGame = {
 };
 
 export type SubmitAction = {
-  kind: ClientMessageKind.SubmitAction;
+  type: ClientMessageType.SubmitAction;
   gameId: GameId;
   action: Action;
 };
 
 export type LeaveGame = {
-  kind: ClientMessageKind.LeaveGame;
+  type: ClientMessageType.LeaveGame;
   gameId: GameId;
   playerId: PlayerId;
 };

@@ -1,8 +1,8 @@
 import { makeGameId, makePlayerId } from '@mtg-utils/engine-core';
 import type { ClientMessage, ServerMessage } from '@mtg-utils/engine-protocol';
 import {
-  ClientMessageKind,
-  ServerMessageKind,
+  ClientMessageType,
+  ServerMessageType,
   parseClientMessage,
 } from '@mtg-utils/engine-protocol';
 import { type WebSocket, WebSocketServer } from 'ws';
@@ -29,7 +29,7 @@ export const startWebSocketServer = (opts: StartOptions): WebSocketServer => {
       const text = typeof data === 'string' ? data : data.toString();
       const msg = parseClientMessage(text);
       if (!msg) {
-        sendDirect({ kind: ServerMessageKind.ServerError, message: 'malformed message' });
+        sendDirect({ type: ServerMessageType.ServerError, message: 'malformed message' });
         return;
       }
       handle(msg);
@@ -40,8 +40,8 @@ export const startWebSocketServer = (opts: StartOptions): WebSocketServer => {
     });
 
     const handle = (msg: ClientMessage): void => {
-      switch (msg.kind) {
-        case ClientMessageKind.JoinGame: {
+      switch (msg.type) {
+        case ClientMessageType.JoinGame: {
           const gameId = makeGameId(msg.gameId);
           const playerId = makePlayerId(msg.playerId);
           const room = rooms.getOrCreate(gameId);
@@ -52,13 +52,13 @@ export const startWebSocketServer = (opts: StartOptions): WebSocketServer => {
             socket,
           });
           if (!result.ok) {
-            sendDirect({ kind: ServerMessageKind.ServerError, message: result.reason });
+            sendDirect({ type: ServerMessageType.ServerError, message: result.reason });
             return;
           }
           session.gameId = gameId;
           session.playerId = playerId;
           sendDirect({
-            kind: ServerMessageKind.JoinAck,
+            type: ServerMessageType.JoinAck,
             gameId,
             playerId,
             ready: result.ready,
@@ -66,11 +66,11 @@ export const startWebSocketServer = (opts: StartOptions): WebSocketServer => {
           if (result.ready) room.sendStateSync(playerId);
           return;
         }
-        case ClientMessageKind.SubmitAction: {
+        case ClientMessageType.SubmitAction: {
           const gameId = makeGameId(msg.gameId);
           const room = rooms.get(gameId);
           if (!room) {
-            sendDirect({ kind: ServerMessageKind.ServerError, message: 'unknown game' });
+            sendDirect({ type: ServerMessageType.ServerError, message: 'unknown game' });
             return;
           }
           const result = room.submitAction(msg.action);
@@ -79,7 +79,7 @@ export const startWebSocketServer = (opts: StartOptions): WebSocketServer => {
           }
           return;
         }
-        case ClientMessageKind.LeaveGame: {
+        case ClientMessageType.LeaveGame: {
           // v0: no-op; reconnect-friendly
           return;
         }

@@ -8,7 +8,7 @@ import {
   type PlayerView,
 } from '@mtg-utils/engine-core';
 import type { ClientMessage, ServerMessage } from '@mtg-utils/engine-protocol';
-import { ClientMessageKind, ServerMessageKind } from '@mtg-utils/engine-protocol';
+import { ClientMessageType, ServerMessageType } from '@mtg-utils/engine-protocol';
 
 export { DEFAULT_DECK, computeSpent, getMana };
 
@@ -47,7 +47,7 @@ export class EngineWsService {
     ws.onopen = () => {
       this.connectionStatus.set('waiting');
       this.sendRaw({
-        kind: ClientMessageKind.JoinGame,
+        type: ClientMessageType.JoinGame,
         gameId: gameId as never,
         playerId: playerId as never,
         name,
@@ -73,7 +73,7 @@ export class EngineWsService {
   }
 
   submit(action: Action): void {
-    this.sendRaw({ kind: ClientMessageKind.SubmitAction, gameId: this.gameId as never, action });
+    this.sendRaw({ type: ClientMessageType.SubmitAction, gameId: this.gameId as never, action });
     this.lastRejection.set(null);
   }
 
@@ -89,17 +89,17 @@ export class EngineWsService {
   }
 
   private handleMessage(msg: ServerMessage): void {
-    switch (msg.kind) {
-      case ServerMessageKind.JoinAck:
+    switch (msg.type) {
+      case ServerMessageType.JoinAck:
         this.addLog(`← join_ack ready=${msg.ready}`);
         if (msg.ready) this.connectionStatus.set('active');
         return;
-      case ServerMessageKind.StateSync:
+      case ServerMessageType.StateSync:
         this.view.set(msg.view);
         if (this.connectionStatus() !== 'active') this.connectionStatus.set('active');
         this.addLog(`← state_sync turn=${msg.view.turn} step=${msg.view.step}`);
         return;
-      case ServerMessageKind.EventBatch:
+      case ServerMessageType.EventBatch:
         this.view.set(msg.view);
         this.lastRejection.set(null);
         this.addLog(
@@ -112,14 +112,14 @@ export class EngineWsService {
           this.addLog(`  · ${e.type}${suffix}`);
         }
         return;
-      case ServerMessageKind.RejectedAction:
+      case ServerMessageType.RejectedAction:
         this.lastRejection.set(msg.reason);
         this.addLog(`← REJECTED: ${msg.reason}`);
         return;
-      case ServerMessageKind.GameOver:
+      case ServerMessageType.GameOver:
         this.addLog(`← GAME OVER winner=${msg.winner ?? 'draw'}`);
         return;
-      case ServerMessageKind.ServerError:
+      case ServerMessageType.ServerError:
         this.addLog(`← server_error: ${msg.message}`);
         return;
     }

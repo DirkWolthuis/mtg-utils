@@ -1,6 +1,7 @@
 import type { CardDefinitionId, GameEvent, PlayerId, PlayerView } from '@mtg-utils/engine-core';
 import { ActionType } from '@mtg-utils/engine-core';
 import type { ClientMessage, ServerMessage } from '@mtg-utils/engine-protocol';
+import { ClientMessageType, ServerMessageType } from '@mtg-utils/engine-protocol';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { WebSocket, type WebSocketServer } from 'ws';
 import { startWebSocketServer } from './ws-server';
@@ -36,16 +37,16 @@ const connect = async (
   ws.on('message', (data) => {
     const msg = JSON.parse(data.toString()) as ServerMessage;
     inbox.push(msg);
-    if (msg.kind === 'event_batch') {
+    if (msg.type === ServerMessageType.EventBatch) {
       events.push(...msg.events);
       views.push(msg.view);
-    } else if (msg.kind === 'state_sync') {
+    } else if (msg.type === ServerMessageType.StateSync) {
       views.push(msg.view);
     }
   });
 
   send(ws, {
-    kind: 'join_game',
+    type: ClientMessageType.JoinGame,
     gameId: GAME_ID as never,
     playerId: playerId as PlayerId,
     name,
@@ -55,18 +56,18 @@ const connect = async (
   return { ws, inbox, events, views };
 };
 
-const waitForKind = async (
+const waitForType = async (
   client: ClientHandle,
-  kind: ServerMessage['kind'],
+  msgType: ServerMessage['type'],
   timeoutMs = 3000,
 ): Promise<ServerMessage> => {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
-    const found = client.inbox.find((m) => m.kind === kind);
+    const found = client.inbox.find((m) => m.type === msgType);
     if (found) return found;
     await wait(20);
   }
-  throw new Error(`timeout waiting for ${kind}`);
+  throw new Error(`timeout waiting for ${msgType}`);
 };
 
 describe('engine-server smoke', () => {
@@ -117,8 +118,8 @@ describe('engine-server smoke', () => {
     const a = await connect('p1', 'Alice', aliceDeck);
     const b = await connect('p2', 'Bob', bobDeck);
 
-    await waitForKind(a, 'state_sync');
-    await waitForKind(b, 'state_sync');
+    await waitForType(a, ServerMessageType.StateSync);
+    await waitForType(b, ServerMessageType.StateSync);
 
     const view = a.views[a.views.length - 1];
     expect(view).toBeDefined();
@@ -131,14 +132,14 @@ describe('engine-server smoke', () => {
     const expectedWinner = activeView.opponent.id;
 
     send(activeClient.ws, {
-      kind: 'submit_action',
+      type: ClientMessageType.SubmitAction,
       gameId: GAME_ID as never,
       action: { type: ActionType.Concede, playerId: activeView.forPlayer },
     });
 
-    const over = await waitForKind(a, 'game_over');
-    expect(over.kind).toBe('game_over');
-    if (over.kind === 'game_over') {
+    const over = await waitForType(a, ServerMessageType.GameOver);
+    expect(over.type).toBe(ServerMessageType.GameOver);
+    if (over.type === ServerMessageType.GameOver) {
       expect(over.winner).toBe(expectedWinner);
     }
 

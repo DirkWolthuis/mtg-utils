@@ -88,7 +88,8 @@ npm run lint           # confirm no remaining errors
 What the tools enforce (so you can write code that already matches):
 
 - **Prettier** (`.prettierrc`): single quotes, trailing commas everywhere, `printWidth: 100`, semicolons, LF line endings. `prettier-plugin-organize-imports` removes unused imports and sorts the rest — do not hand-curate import order; let the formatter do it.
-- **ESLint** (`eslint.config.mjs`): inline `import type { … }` for type-only imports (`consistent-type-imports`), `type` aliases over `interface` (`consistent-type-definitions`), exhaustive switches on discriminated unions (`switch-exhaustiveness-check`) — this catches missing `ActionType` / effect `kind` / event `kind` cases. Floating promises, misused promises, and `async` functions with no `await` are errors in `*.ts` files.
+- **ESLint** (`eslint.config.mjs`): inline `import type { … }` for type-only imports (`consistent-type-imports`), `type` aliases over `interface` (`consistent-type-definitions`), exhaustive switches on discriminated unions (`switch-exhaustiveness-check`) — this catches missing `ActionType` / effect `type` / event `type` cases. Floating promises, misused promises, and `async` functions with no `await` are errors in `*.ts` files.
+- **Discriminant property convention**: all discriminated unions in this repo use `type` as the discriminant field — `Action`, `GameEvent`, `Effect`, `ClientMessage`, `ServerMessage` all use `type`. Never use `kind`.
 - **`eslint-config-prettier`** is loaded last so style rules do not fight Prettier — if a rule looks redundant with formatting, it is intentionally disabled.
 
 The Angular app (`apps/mtg-trader`) additionally enforces standalone components and `@if/@for` control-flow templates over `*ngIf`/`*ngFor`.
