@@ -80,12 +80,5 @@
         }
       }
     },
-    "repl": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "tsx --tsconfig tsconfig.base.json apps/engine-server/src/repl/index.ts",
-        "cwd": "{workspaceRoot}"
-      }
-    }
   }
 }
