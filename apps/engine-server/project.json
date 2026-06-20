@@ -79,6 +79,6 @@
           "buildTarget": "engine-server:build:production"
         }
       }
-    },
+    }
   }
 }
