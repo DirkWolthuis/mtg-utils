@@ -18,17 +18,15 @@ Path aliases (set in `tsconfig.base.json`): `@mtg-utils/engine-core`, `@mtg-util
 The most-used flows are wrapped as npm scripts; everything below also has a direct `npx nx …` equivalent.
 
 ```sh
-npm run build           # build all three engine projects
-npm test                # vitest across engine-core + engine-server
-npm run serve           # nx serve engine-server (ws://localhost:8080; override PORT)
-npm run repl -- --player p1 --name Alice --game g1
-npm run repl:p1         # shortcut: REPL as p1/Alice/g1
-npm run repl:p2         # shortcut: REPL as p2/Bob/g1
-npm run serve:trader    # the Angular mtg-trader app (unrelated to the engine)
-npm run format          # prettier --write across the repo
-npm run format:check    # prettier --check (use in CI / pre-PR)
-npm run lint            # nx run-many -t lint
-npm run lint:fix        # nx run-many -t lint --fix
+npm run build              # build all three engine projects
+npm test                   # vitest across engine-core + engine-server
+npm run serve:game-server  # nx serve engine-server (ws://localhost:8080; override PORT)
+npm run serve:game-ui      # the Angular game-ui app (debug/test UI for the engine)
+npm run serve:trader       # the Angular mtg-trader app (unrelated to the engine)
+npm run format             # prettier --write across the repo
+npm run format:check       # prettier --check (use in CI / pre-PR)
+npm run lint               # nx run-many -t lint
+npm run lint:fix           # nx run-many -t lint --fix
 ```
 
 Direct Nx forms (use these for narrower targets):
@@ -39,8 +37,6 @@ npx nx run engine-core:test -- -t "summoning-sick"   # single test by name
 npx nx run engine-server:test                        # runs the 2-client WS smoke spec
 npx nx run engine-server:build                       # esbuild bundle for engine-server only
 ```
-
-In the REPL, `help()` prints the action shortcuts (`play("forest")`, `tap("forest", "G")`, `play("strike", { target: "opp" })`, `attack(["bears"])`, `block([["bears", "giant"]])`, `pass()`, `concede()`); `me()`/`hand()`/`bf()` print the current view.
 
 ## Engine architecture (load-bearing)
 
@@ -92,7 +88,8 @@ npm run lint           # confirm no remaining errors
 What the tools enforce (so you can write code that already matches):
 
 - **Prettier** (`.prettierrc`): single quotes, trailing commas everywhere, `printWidth: 100`, semicolons, LF line endings. `prettier-plugin-organize-imports` removes unused imports and sorts the rest — do not hand-curate import order; let the formatter do it.
-- **ESLint** (`eslint.config.mjs`): inline `import type { … }` for type-only imports (`consistent-type-imports`), `type` aliases over `interface` (`consistent-type-definitions`), exhaustive switches on discriminated unions (`switch-exhaustiveness-check`) — this catches missing `ActionType` / effect `kind` / event `kind` cases. Floating promises, misused promises, and `async` functions with no `await` are errors in `*.ts` files.
+- **ESLint** (`eslint.config.mjs`): inline `import type { … }` for type-only imports (`consistent-type-imports`), `type` aliases over `interface` (`consistent-type-definitions`), exhaustive switches on discriminated unions (`switch-exhaustiveness-check`) — this catches missing `ActionType` / effect `type` / event `type` cases. Floating promises, misused promises, and `async` functions with no `await` are errors in `*.ts` files.
+- **Discriminant property convention**: all discriminated unions in this repo use `type` as the discriminant field — `Action`, `GameEvent`, `Effect`, `ClientMessage`, `ServerMessage` all use `type`. Never use `kind`.
 - **`eslint-config-prettier`** is loaded last so style rules do not fight Prettier — if a rule looks redundant with formatting, it is intentionally disabled.
 
 The Angular app (`apps/mtg-trader`) additionally enforces standalone components and `@if/@for` control-flow templates over `*ngIf`/`*ngFor`.

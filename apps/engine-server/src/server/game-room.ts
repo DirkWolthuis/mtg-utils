@@ -12,6 +12,7 @@ import {
   setupGame,
 } from '@mtg-utils/engine-core';
 import type { ServerMessage } from '@mtg-utils/engine-protocol';
+import { ServerMessageType } from '@mtg-utils/engine-protocol';
 import type { WebSocket } from 'ws';
 
 export type JoinedPlayer = {
@@ -87,7 +88,11 @@ export class GameRoom {
       this.sendEventBatch(p.playerId, result.value.events);
     }
     if (this.state.status === 'ended') {
-      this.broadcast({ kind: 'game_over', gameId: this.id, winner: this.state.winner });
+      this.broadcast({
+        type: ServerMessageType.GameOver,
+        gameId: this.id,
+        winner: this.state.winner,
+      });
     }
     return { ok: true };
   }
@@ -111,16 +116,16 @@ export class GameRoom {
   sendStateSync(playerId: PlayerId): void {
     const view = this.viewFor(playerId);
     if (!view) return;
-    this.send(playerId, { kind: 'state_sync', gameId: this.id, view });
+    this.send(playerId, { type: ServerMessageType.StateSync, gameId: this.id, view });
   }
 
   private sendEventBatch(playerId: PlayerId, events: GameEvent[]): void {
     const view = this.viewFor(playerId);
     if (!view) return;
-    this.send(playerId, { kind: 'event_batch', gameId: this.id, events, view });
+    this.send(playerId, { type: ServerMessageType.EventBatch, gameId: this.id, events, view });
   }
 
   sendError(playerId: PlayerId, reason: string): void {
-    this.send(playerId, { kind: 'rejected_action', gameId: this.id, reason });
+    this.send(playerId, { type: ServerMessageType.RejectedAction, gameId: this.id, reason });
   }
 }

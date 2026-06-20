@@ -1,37 +1,46 @@
 import type { GameEvent, GameId, PlayerId, PlayerView } from '@mtg-utils/engine-core';
 
+export enum ServerMessageType {
+  StateSync = 'state_sync',
+  EventBatch = 'event_batch',
+  RejectedAction = 'rejected_action',
+  GameOver = 'game_over',
+  ServerError = 'server_error',
+  JoinAck = 'join_ack',
+}
+
 export type StateSync = {
-  kind: 'state_sync';
+  type: ServerMessageType.StateSync;
   gameId: GameId;
   view: PlayerView;
 };
 
 export type EventBatch = {
-  kind: 'event_batch';
+  type: ServerMessageType.EventBatch;
   gameId: GameId;
   events: GameEvent[];
   view: PlayerView;
 };
 
 export type RejectedAction = {
-  kind: 'rejected_action';
+  type: ServerMessageType.RejectedAction;
   gameId: GameId;
   reason: string;
 };
 
 export type GameOver = {
-  kind: 'game_over';
+  type: ServerMessageType.GameOver;
   gameId: GameId;
   winner: PlayerId | null;
 };
 
 export type ServerError = {
-  kind: 'server_error';
+  type: ServerMessageType.ServerError;
   message: string;
 };
 
 export type JoinAck = {
-  kind: 'join_ack';
+  type: ServerMessageType.JoinAck;
   gameId: GameId;
   playerId: PlayerId;
   /** Both players present and game has started */
@@ -45,5 +54,3 @@ export type ServerMessage =
   | GameOver
   | ServerError
   | JoinAck;
-
-export type ServerMessageKind = ServerMessage['kind'];

@@ -1,0 +1,174 @@
+@if (ws.connectionStatus() === 'disconnected') {
+<div class="join-form">
+  <h2>Join Game</h2>
+  <label>
+    Player ID
+    <input [(ngModel)]="joinPlayerId" />
+  </label>
+  <label>
+    Display Name
+    <input [(ngModel)]="joinName" />
+  </label>
+  <label>
+    Game ID
+    <input [(ngModel)]="joinGameId" />
+  </label>
+  <label>
+    Port
+    <input type="number" [(ngModel)]="joinPort" />
+  </label>
+  <button (click)="join()">Connect</button>
+</div>
+} @else if (ws.connectionStatus() === 'connecting') {
+<p>Connecting…</p>
+} @else if (ws.connectionStatus() === 'waiting') {
+<p>Waiting for opponent…</p>
+<button (click)="ws.disconnect()">Disconnect</button>
+} @else if (ws.view(); as v) {
+<!-- Status bar -->
+<div class="status-bar">
+  Turn {{ v.turn }} | Step: <strong>{{ v.step }}</strong> | Active: {{ v.activePlayer ===
+  v.forPlayer ? 'YOU' : v.opponent.name }} @if (hasPriority()) { |
+  <span class="has-priority">YOU HAVE PRIORITY</span>
+  } @else if (v.priorityPlayer) { | Priority: {{ v.priorityPlayer === v.opponent.id ?
+  v.opponent.name : v.priorityPlayer }} } @else { | No priority }
+</div>
+
+<!-- Life totals -->
+<div class="life">
+  You ({{ v.forPlayer }}): <strong>{{ v.self.life }}</strong> life &nbsp;|&nbsp; {{ v.opponent.name
+  }} ({{ v.opponent.id }}): <strong>{{ v.opponent.life }}</strong> life &nbsp;|&nbsp; Opp. hand: {{
+  v.opponent.handCount }} | Opp. library: {{ v.opponent.libraryCount }}
+</div>
+
+<!-- Mana pool -->
+<div class="mana">
+  Mana: {{ manaDisplay() }} | Hand: {{ v.self.hand.length }} | Library: {{ v.self.library.length }}
+</div>
+
+<!-- Rejection error -->
+@if (ws.lastRejection()) {
+<div class="error">Rejected: {{ ws.lastRejection() }}</div>
+} @if (!hasPriority() && v.priorityPlayer) {
+<div class="hint">
+  Waiting for {{ v.priorityPlayer === v.opponent.id ? v.opponent.name : v.priorityPlayer }}…
+</div>
+}
+
+<!-- Action buttons -->
+<div style="margin: 4px 0">
+  <button [disabled]="!hasPriority()" (click)="pass()">Pass Priority</button>
+  <button [class.active]="isSkipping()" (click)="skipTurn()">
+    Skip Turn{{ isSkipping() ? ' (active)' : '' }}
+  </button>
+  <button (click)="concede()">Concede</button>
+  @if (v.step === 'declare_attackers' && v.activePlayer === v.forPlayer) {
+  <button (click)="declareAttackers()">
+    Declare Attackers ({{ selectedAttackers().size }} selected)
+  </button>
+  } @if (v.step === 'declare_blockers' && v.activePlayer !== v.forPlayer) {
+  <button [disabled]="!hasPriority()" (click)="declareBlockers()">
+    Declare Blockers ({{ blockerAssignments().size }} assigned)
+  </button>
+  }
+</div>
+
+<!-- Hand -->
+<section>
+  <h3>Your Hand</h3>
+  @for (card of myHand(); track card.id) {
+  <div class="card">
+    <span class="label">{{ card.name }}</span>
+    <span class="meta">{{ card.id }} {{ card.costLabel }} [{{ card.types.join('/') }}]</span>
+    <div class="actions">
+      <button (click)="playCard(card.id)">Play</button>
+    </div>
+  </div>
+  } @if (myHand().length === 0) {
+  <em>Empty</em>
+  }
+</section>
+
+<!-- Your battlefield -->
+<section>
+  <h3>Your Battlefield</h3>
+  @for (card of myBattlefield(); track card.id) {
+  <div
+    class="card"
+    [class.tapped]="card.instance.tapped"
+    [class.selected]="selectedAttackers().has(card.id)"
+  >
+    <span class="label">{{ card.name }}</span>
+    <span class="meta">
+      {{ card.id }} @if (card.power !== undefined) { {{ card.power }}/{{ card.toughness }} } @if
+      (card.instance.tapped) { [tapped] } @if (card.instance.summoningSick) { [sick] } @if
+      (card.instance.damage > 0) { [dmg:{{ card.instance.damage }}] }
+    </span>
+    <div class="actions">
+      @if (card.types.includes('land') && !card.instance.tapped) { @for (color of card.produces;
+      track color) {
+      <button (click)="tapLand(card.id, color)">Tap {{ color }}</button>
+      } } @if ( v.step === 'declare_attackers' && v.activePlayer === v.forPlayer &&
+      card.types.includes('creature') && !card.instance.tapped && !card.instance.summoningSick ) {
+      <button (click)="toggleAttacker(card.id)">
+        {{ selectedAttackers().has(card.id) ? '✓ Attacking' : 'Attack' }}
+      </button>
+      } @if ( v.step === 'declare_blockers' && v.activePlayer !== v.forPlayer &&
+      card.types.includes('creature') && !card.instance.tapped ) {
+      <select (change)="onBlockerChange(card.id, $event)">
+        <option value="">-- not blocking --</option>
+        @for (atk of attackerRows(); track atk.id) {
+        <option [value]="atk.id">Block {{ atk.name }} ({{ atk.id }})</option>
+        }
+      </select>
+      }
+    </div>
+  </div>
+  } @if (myBattlefield().length === 0) {
+  <em>Empty</em>
+  }
+</section>
+
+<!-- Opponent's battlefield -->
+<section>
+  <h3>Opponent's Battlefield</h3>
+  @for (card of opponentBattlefield(); track card.id) {
+  <div class="card" [class.tapped]="card.instance.tapped">
+    <span class="label">{{ card.name }}</span>
+    <span class="meta">
+      {{ card.id }} @if (card.power !== undefined) { {{ card.power }}/{{ card.toughness }} } @if
+      (card.instance.tapped) { [tapped] } @if (card.instance.damage > 0) { [dmg:{{
+      card.instance.damage }}] } @if (attackingIds().has(card.id)) { [attacking] }
+    </span>
+  </div>
+  } @if (opponentBattlefield().length === 0) {
+  <em>Empty</em>
+  }
+</section>
+
+<!-- Stack -->
+@if (v.stack.length > 0) {
+<section>
+  <h3>Stack ({{ v.stack.length }})</h3>
+  @for (item of v.stack; track item.id; let i = $index) { @if (v.cards[item.cardId]; as card) {
+  <div class="card">
+    <span class="label">{{ getCardDefinition(card.definitionId).name }}</span>
+    <span class="meta">
+      ctrl: {{ item.controllerId }} targets: {{ item.targets.length }}{{ i === v.stack.length - 1 ?
+      ' ↑ resolves next' : '' }}</span
+    >
+  </div>
+  } }
+</section>
+}
+
+<!-- Event log -->
+<section>
+  <h3>Event Log</h3>
+  <div class="log-lines">
+    @for (line of ws.log(); track $index) {
+    <div>{{ line }}</div>
+    }
+  </div>
+</section>
+}

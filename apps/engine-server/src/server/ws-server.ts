@@ -1,6 +1,10 @@
 import { makeGameId, makePlayerId } from '@mtg-utils/engine-core';
 import type { ClientMessage, ServerMessage } from '@mtg-utils/engine-protocol';
-import { parseClientMessage } from '@mtg-utils/engine-protocol';
+import {
+  ClientMessageType,
+  ServerMessageType,
+  parseClientMessage,
+} from '@mtg-utils/engine-protocol';
 import { type WebSocket, WebSocketServer } from 'ws';
 import { RoomRegistry } from './room-registry';
 import { createSession } from './session';
@@ -25,7 +29,7 @@ export const startWebSocketServer = (opts: StartOptions): WebSocketServer => {
       const text = typeof data === 'string' ? data : data.toString();
       const msg = parseClientMessage(text);
       if (!msg) {
-        sendDirect({ kind: 'server_error', message: 'malformed message' });
+        sendDirect({ type: ServerMessageType.ServerError, message: 'malformed message' });
         return;
       }
       handle(msg);
@@ -36,8 +40,8 @@ export const startWebSocketServer = (opts: StartOptions): WebSocketServer => {
     });
 
     const handle = (msg: ClientMessage): void => {
-      switch (msg.kind) {
-        case 'join_game': {
+      switch (msg.type) {
+        case ClientMessageType.JoinGame: {
           const gameId = makeGameId(msg.gameId);
           const playerId = makePlayerId(msg.playerId);
           const room = rooms.getOrCreate(gameId);
@@ -48,13 +52,13 @@ export const startWebSocketServer = (opts: StartOptions): WebSocketServer => {
             socket,
           });
           if (!result.ok) {
-            sendDirect({ kind: 'server_error', message: result.reason });
+            sendDirect({ type: ServerMessageType.ServerError, message: result.reason });
             return;
           }
           session.gameId = gameId;
           session.playerId = playerId;
           sendDirect({
-            kind: 'join_ack',
+            type: ServerMessageType.JoinAck,
             gameId,
             playerId,
             ready: result.ready,
@@ -62,11 +66,11 @@ export const startWebSocketServer = (opts: StartOptions): WebSocketServer => {
           if (result.ready) room.sendStateSync(playerId);
           return;
         }
-        case 'submit_action': {
+        case ClientMessageType.SubmitAction: {
           const gameId = makeGameId(msg.gameId);
           const room = rooms.get(gameId);
           if (!room) {
-            sendDirect({ kind: 'server_error', message: 'unknown game' });
+            sendDirect({ type: ServerMessageType.ServerError, message: 'unknown game' });
             return;
           }
           const result = room.submitAction(msg.action);
@@ -75,7 +79,7 @@ export const startWebSocketServer = (opts: StartOptions): WebSocketServer => {
           }
           return;
         }
-        case 'leave_game': {
+        case ClientMessageType.LeaveGame: {
           // v0: no-op; reconnect-friendly
           return;
         }

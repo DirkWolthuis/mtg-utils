@@ -40,7 +40,9 @@ export const projectFor = (state: GameState, viewer: PlayerId): PlayerView => {
   const cards: Record<CardInstanceId, CardInstance> = {};
   const isVisible = (c: CardInstance): boolean => {
     if (c.ownerId === viewer) return c.zone !== 'library';
-    return c.zone === 'battlefield' || c.zone === 'graveyard' || c.zone === 'exile';
+    return (
+      c.zone === 'battlefield' || c.zone === 'graveyard' || c.zone === 'exile' || c.zone === 'stack'
+    );
   };
   for (const id of Object.keys(state.cards) as CardInstanceId[]) {
     const c = state.cards[id];

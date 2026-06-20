@@ -1,26 +1,27 @@
 import type { ClientMessage } from './client-to-server';
+import { ClientMessageType } from './client-to-server';
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
 
 export const isClientMessage = (raw: unknown): raw is ClientMessage => {
   if (!isObject(raw)) return false;
-  const kind = raw['kind'];
-  if (typeof kind !== 'string') return false;
-  switch (kind) {
-    case 'join_game':
+  const msgType = raw['type'];
+  if (typeof msgType !== 'string') return false;
+  switch (msgType) {
+    case ClientMessageType.JoinGame:
       return (
         typeof raw['gameId'] === 'string' &&
         typeof raw['playerId'] === 'string' &&
         typeof raw['name'] === 'string' &&
         Array.isArray(raw['deck'])
       );
-    case 'submit_action':
+    case ClientMessageType.SubmitAction:
       return (
         typeof raw['gameId'] === 'string' &&
         isObject(raw['action']) &&
         typeof (raw['action'] as Record<string, unknown>)['type'] === 'string'
       );
-    case 'leave_game':
+    case ClientMessageType.LeaveGame:
       return typeof raw['gameId'] === 'string' && typeof raw['playerId'] === 'string';
     default:
       return false;
