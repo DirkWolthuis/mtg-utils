@@ -92,11 +92,15 @@ export class EngineWsService {
     switch (msg.type) {
       case ServerMessageType.JoinAck:
         this.addLog(`← join_ack ready=${msg.ready}`);
-        if (msg.ready) this.connectionStatus.set('active');
+        if (msg.ready) {
+          this.connectionStatus.set('active');
+        }
         return;
       case ServerMessageType.StateSync:
         this.view.set(msg.view);
-        if (this.connectionStatus() !== 'active') this.connectionStatus.set('active');
+        if (this.connectionStatus() !== 'active') {
+          this.connectionStatus.set('active');
+        }
         this.addLog(`← state_sync turn=${msg.view.turn} step=${msg.view.step}`);
         return;
       case ServerMessageType.EventBatch:
@@ -107,8 +111,11 @@ export class EngineWsService {
         );
         for (const e of msg.events) {
           let suffix = '';
-          if ('cardId' in e) suffix = ` ${(e as { cardId: string }).cardId}`;
-          else if ('playerId' in e) suffix = ` ${(e as { playerId: string }).playerId}`;
+          if ('cardId' in e) {
+            suffix = ` ${(e as { cardId: string }).cardId}`;
+          } else if ('playerId' in e) {
+            suffix = ` ${(e as { playerId: string }).playerId}`;
+          }
           this.addLog(`  · ${e.type}${suffix}`);
         }
         return;

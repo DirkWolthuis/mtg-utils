@@ -38,13 +38,21 @@ const damageForPass = (state: GameState, pass: 'first_strike' | 'regular'): Game
 
   for (const attack of state.combat.attackers) {
     const attackerId = attack.attackerId;
-    if (!livingOnBattlefield(attackerId)) continue;
+    if (!livingOnBattlefield(attackerId)) {
+      continue;
+    }
     const aFirstStrike = hasKeyword(state, attackerId, 'first_strike');
-    if (pass === 'first_strike' && !aFirstStrike) continue;
-    if (pass === 'regular' && aFirstStrike) continue;
+    if (pass === 'first_strike' && !aFirstStrike) {
+      continue;
+    }
+    if (pass === 'regular' && aFirstStrike) {
+      continue;
+    }
 
     const attackerPT = ptOf(state, attackerId);
-    if (attackerPT.power <= 0) continue;
+    if (attackerPT.power <= 0) {
+      continue;
+    }
 
     const blockers = state.combat.blockers.filter((b) => b.attackerId === attackerId);
 
@@ -78,7 +86,9 @@ const damageForPass = (state: GameState, pass: 'first_strike' | 'regular'): Game
       const aDeathtouch = hasKeyword(state, attackerId, 'deathtouch');
 
       for (const b of blockers) {
-        if (!livingOnBattlefield(b.blockerId)) continue;
+        if (!livingOnBattlefield(b.blockerId)) {
+          continue;
+        }
         const bPT = ptOf(state, b.blockerId);
         const bCurrentDamage = state.cards[b.blockerId].damage;
         const lethalNeeded = aDeathtouch ? 1 : Math.max(1, bPT.toughness - bCurrentDamage);
@@ -129,12 +139,20 @@ const damageForPass = (state: GameState, pass: 'first_strike' | 'regular'): Game
 
       // Blockers also deal damage to the attacker
       for (const b of blockers) {
-        if (!livingOnBattlefield(b.blockerId)) continue;
+        if (!livingOnBattlefield(b.blockerId)) {
+          continue;
+        }
         const bFirstStrike = hasKeyword(state, b.blockerId, 'first_strike');
-        if (pass === 'first_strike' && !bFirstStrike) continue;
-        if (pass === 'regular' && bFirstStrike) continue;
+        if (pass === 'first_strike' && !bFirstStrike) {
+          continue;
+        }
+        if (pass === 'regular' && bFirstStrike) {
+          continue;
+        }
         const bPT = ptOf(state, b.blockerId);
-        if (bPT.power <= 0) continue;
+        if (bPT.power <= 0) {
+          continue;
+        }
         events.push({
           type: 'damage_dealt',
           sourceCardId: b.blockerId,
@@ -158,7 +176,9 @@ const damageForPass = (state: GameState, pass: 'first_strike' | 'regular'): Game
 };
 
 export const computeCombatDamageEvents = (state: GameState): GameEvent[] => {
-  if (state.combat.attackers.length === 0) return [];
+  if (state.combat.attackers.length === 0) {
+    return [];
+  }
   // v0 simplification: emit first-strike pass and regular pass back-to-back; SBAs
   // between events will clean up creatures that died in the first-strike pass before
   // their regular damage entries are processed (damage_dealt against a card that's no

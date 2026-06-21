@@ -26,7 +26,9 @@ export const catalog: Record<CardDefinitionId, CardDefinition> = Object.fromEntr
 
 export const getCardDefinition = (id: CardDefinitionId): CardDefinition => {
   const def = catalog[id];
-  if (!def) throw new Error(`Unknown card definition: ${id as string}`);
+  if (!def) {
+    throw new Error(`Unknown card definition: ${id as string}`);
+  }
   return def;
 };
 

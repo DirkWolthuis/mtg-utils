@@ -26,9 +26,15 @@ const intrinsicUntap = (state: GameState): GameEvent[] => {
   events.push({ type: 'lands_played_reset', playerId: active });
   for (const id of state.battlefield) {
     const c = state.cards[id];
-    if (c.controllerId !== active) continue;
-    if (c.tapped) events.push({ type: 'permanent_untapped', cardId: id });
-    if (c.summoningSick) events.push({ type: 'summoning_sickness_cleared', cardId: id });
+    if (c.controllerId !== active) {
+      continue;
+    }
+    if (c.tapped) {
+      events.push({ type: 'permanent_untapped', cardId: id });
+    }
+    if (c.summoningSick) {
+      events.push({ type: 'summoning_sickness_cleared', cardId: id });
+    }
   }
   return events;
 };
@@ -36,7 +42,9 @@ const intrinsicUntap = (state: GameState): GameEvent[] => {
 const intrinsicDraw = (state: GameState): GameEvent[] => {
   const active = state.activePlayer;
   // Turn-1 first player skip-draw
-  if (state.turn === 1 && state.playerOrder[0] === active) return [];
+  if (state.turn === 1 && state.playerOrder[0] === active) {
+    return [];
+  }
   const lib = state.players[active].library;
   if (lib.length === 0) {
     return [
@@ -81,7 +89,9 @@ const skippableEmptyDeclareSteps = (state: GameState, step: Step): GameEvent[] =
 
 export const registerStepAdvanceSubscriber = (bus: EventBus): void => {
   bus.on('step_advanced', (state, event) => {
-    if (event.type !== 'step_advanced') return [];
+    if (event.type !== 'step_advanced') {
+      return [];
+    }
     // First: any turn_started event for the *new* state
     const startedEvents = turnStartedFor(state, event.to, event.from);
     // Then: the intrinsic events for the new step

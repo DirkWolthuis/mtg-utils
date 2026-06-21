@@ -19,7 +19,9 @@ const PASSES_TO_RESOLVE = 2;
  */
 export const registerPriorityLoop = (bus: EventBus): void => {
   bus.on('priority_passed', (state) => {
-    if (state.consecutivePasses < PASSES_TO_RESOLVE) return [];
+    if (state.consecutivePasses < PASSES_TO_RESOLVE) {
+      return [];
+    }
     // Both players have passed in a row.
     if (state.stack.length > 0) {
       const top = state.stack[state.stack.length - 1];

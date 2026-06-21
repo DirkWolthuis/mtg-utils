@@ -146,7 +146,9 @@ export const applyEvent = (state: GameState, event: GameEvent): GameState => {
 
     case 'stack_item_resolved': {
       const idx = state.stack.findIndex((s) => s.id === event.stackItemId);
-      if (idx < 0) return state;
+      if (idx < 0) {
+        return state;
+      }
       const stack = state.stack.slice();
       stack.splice(idx, 1);
       return { ...state, stack, consecutivePasses: 0 };
@@ -191,7 +193,9 @@ export const applyEvent = (state: GameState, event: GameEvent): GameState => {
     case 'damage_cleared_at_cleanup': {
       const cards = { ...state.cards };
       for (const id of state.battlefield) {
-        if (cards[id].damage > 0) cards[id] = { ...cards[id], damage: 0 };
+        if (cards[id].damage > 0) {
+          cards[id] = { ...cards[id], damage: 0 };
+        }
       }
       return { ...state, cards };
     }
@@ -218,7 +222,9 @@ export const applyEvent = (state: GameState, event: GameEvent): GameState => {
       return updatePlayer(state, event.playerId, { landsPlayedThisTurn: 0 });
 
     case 'player_lost':
-      if (state.losers.includes(event.playerId)) return state;
+      if (state.losers.includes(event.playerId)) {
+        return state;
+      }
       return { ...state, losers: [...state.losers, event.playerId] };
 
     case 'game_ended':

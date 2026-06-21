@@ -17,7 +17,9 @@ import type { GameEvent } from '../events';
  */
 export const resolveStackItem = (state: GameState, item: StackItem): GameEvent[] => {
   const card = state.cards[item.cardId];
-  if (!card) return [{ type: 'stack_item_resolved', stackItemId: item.id }];
+  if (!card) {
+    return [{ type: 'stack_item_resolved', stackItemId: item.id }];
+  }
   const def = getCardDefinition(card.definitionId);
 
   const events: GameEvent[] = [];
@@ -47,7 +49,9 @@ export const resolveStackItem = (state: GameState, item: StackItem): GameEvent[]
         target,
       };
       const produced = runEffect(effect, ctx);
-      if (produced.ok) events.push(...produced.value);
+      if (produced.ok) {
+        events.push(...produced.value);
+      }
       // Illegal-at-resolve errors are swallowed — analogous to fizzling.
     }
     events.push({

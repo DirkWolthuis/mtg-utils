@@ -29,7 +29,9 @@ export const MAX_EVENTS_PER_ACTION = 10_000;
 
 export const createEngine = (config: EngineConfig = {}): Engine => {
   const bus = createEventBus();
-  for (const r of config.registrars ?? []) r(bus);
+  for (const r of config.registrars ?? []) {
+    r(bus);
+  }
   const sbaChecks = config.sbaChecks ?? [];
 
   const runSbas = (state: GameState, log: GameEvent[], counter: { n: number }): GameState => {
@@ -38,8 +40,12 @@ export const createEngine = (config: EngineConfig = {}): Engine => {
     while (!stable) {
       stable = true;
       const generated: GameEvent[] = [];
-      for (const check of sbaChecks) generated.push(...check(s));
-      if (generated.length === 0) break;
+      for (const check of sbaChecks) {
+        generated.push(...check(s));
+      }
+      if (generated.length === 0) {
+        break;
+      }
       for (const e of generated) {
         if (counter.n++ > MAX_EVENTS_PER_ACTION) {
           throw new Error('event loop exceeded max events per action; possible cycle');
@@ -75,7 +81,9 @@ export const createEngine = (config: EngineConfig = {}): Engine => {
       s = applyEvent(s, event);
       log.push(event);
       const followups = bus.notify(s, event);
-      if (followups.length) queue.push(...followups);
+      if (followups.length) {
+        queue.push(...followups);
+      }
       s = runSbas(s, log, counter);
     }
     return { state: s, events: log };
@@ -83,7 +91,9 @@ export const createEngine = (config: EngineConfig = {}): Engine => {
 
   const apply: Engine['apply'] = (state, action) => {
     const v = validate(state, action);
-    if (!v.ok) return v;
+    if (!v.ok) {
+      return v;
+    }
     return { ok: true, value: drain(state, v.value) };
   };
 

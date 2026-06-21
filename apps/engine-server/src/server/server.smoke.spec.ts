@@ -64,7 +64,9 @@ const waitForType = async (
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
     const found = client.inbox.find((m) => m.type === msgType);
-    if (found) return found;
+    if (found) {
+      return found;
+    }
     await wait(20);
   }
   throw new Error(`timeout waiting for ${msgType}`);
@@ -123,12 +125,16 @@ describe('engine-server smoke', () => {
 
     const view = a.views[a.views.length - 1];
     expect(view).toBeDefined();
-    if (!view) return;
+    if (!view) {
+      return;
+    }
 
     const activeClient = view.activePlayer === ('p1' as PlayerId) ? a : b;
     const activeView = activeClient.views[activeClient.views.length - 1];
     expect(activeView).toBeDefined();
-    if (!activeView) return;
+    if (!activeView) {
+      return;
+    }
     const expectedWinner = activeView.opponent.id;
 
     send(activeClient.ws, {

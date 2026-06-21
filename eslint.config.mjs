@@ -75,4 +75,20 @@ export default [
     },
   },
   eslintConfigPrettier,
+  {
+    files: [
+      '**/*.ts',
+      '**/*.tsx',
+      '**/*.cts',
+      '**/*.mts',
+      '**/*.js',
+      '**/*.jsx',
+      '**/*.cjs',
+      '**/*.mjs',
+    ],
+    rules: {
+      // Keep this after eslint-config-prettier so brace enforcement stays active.
+      curly: ['error', 'all'],
+    },
+  },
 ];

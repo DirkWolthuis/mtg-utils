@@ -31,12 +31,18 @@ type CardRow = {
 };
 
 const formatCost = (cost: ManaCost | null): string => {
-  if (!cost) return '';
+  if (!cost) {
+    return '';
+  }
   const parts: string[] = [];
-  if (cost.generic) parts.push(String(cost.generic));
+  if (cost.generic) {
+    parts.push(String(cost.generic));
+  }
   for (const c of ['W', 'U', 'B', 'R', 'G', 'C'] as ManaColor[]) {
     const n = cost[c] ?? 0;
-    for (let i = 0; i < n; i++) parts.push(c);
+    for (let i = 0; i < n; i++) {
+      parts.push(c);
+    }
   }
   return `{${parts.join('')}}`;
 };
@@ -89,17 +95,27 @@ export class Game {
         this.lastAutoPassedView = null;
       }
 
-      if (!v) return;
+      if (!v) {
+        return;
+      }
 
       const skip = this.skipUntilTurn();
       if (skip !== null && v.turn !== skip) {
         this.skipUntilTurn.set(null);
       }
 
-      if (this.skipUntilTurn() === null) return;
-      if (v === this.lastAutoPassedView) return;
-      if (v.status !== 'active') return;
-      if (v.priorityPlayer !== v.forPlayer) return;
+      if (this.skipUntilTurn() === null) {
+        return;
+      }
+      if (v === this.lastAutoPassedView) {
+        return;
+      }
+      if (v.status !== 'active') {
+        return;
+      }
+      if (v.priorityPlayer !== v.forPlayer) {
+        return;
+      }
       this.lastAutoPassedView = v;
       this.ws.submit({ type: ActionType.PassPriority, playerId: v.forPlayer });
     });
@@ -109,13 +125,17 @@ export class Game {
 
   protected readonly myHand = computed<CardRow[]>(() => {
     const v = this.ws.view();
-    if (!v) return [];
+    if (!v) {
+      return [];
+    }
     return v.self.hand.map((id) => toCardRow(id, v));
   });
 
   protected readonly myBattlefield = computed<CardRow[]>(() => {
     const v = this.ws.view();
-    if (!v) return [];
+    if (!v) {
+      return [];
+    }
     return v.battlefield
       .filter((id) => v.cards[id]?.controllerId === v.forPlayer)
       .map((id) => toCardRow(id, v));
@@ -123,7 +143,9 @@ export class Game {
 
   protected readonly opponentBattlefield = computed<CardRow[]>(() => {
     const v = this.ws.view();
-    if (!v) return [];
+    if (!v) {
+      return [];
+    }
     return v.battlefield
       .filter((id) => v.cards[id]?.controllerId !== v.forPlayer)
       .map((id) => toCardRow(id, v));
@@ -131,19 +153,25 @@ export class Game {
 
   protected readonly attackingIds = computed<Set<CardInstanceId>>(() => {
     const v = this.ws.view();
-    if (!v) return new Set();
+    if (!v) {
+      return new Set();
+    }
     return new Set(v.combat.attackers.map((a) => a.attackerId));
   });
 
   protected readonly attackerRows = computed<CardRow[]>(() => {
     const v = this.ws.view();
-    if (!v) return [];
+    if (!v) {
+      return [];
+    }
     return v.combat.attackers.map((a) => toCardRow(a.attackerId, v));
   });
 
   protected readonly manaDisplay = computed<string>(() => {
     const v = this.ws.view();
-    if (!v) return '';
+    if (!v) {
+      return '';
+    }
     const pool = v.self.manaPool;
     const parts = (['W', 'U', 'B', 'R', 'G', 'C'] as ManaColor[])
       .filter((c) => getMana(pool, c) > 0)
@@ -163,28 +191,38 @@ export class Game {
 
   protected pass(): void {
     const v = this.ws.view();
-    if (!v) return;
+    if (!v) {
+      return;
+    }
     this.ws.submit({ type: ActionType.PassPriority, playerId: v.forPlayer });
   }
 
   protected concede(): void {
     const v = this.ws.view();
-    if (!v) return;
+    if (!v) {
+      return;
+    }
     this.ws.submit({ type: ActionType.Concede, playerId: v.forPlayer });
   }
 
   protected skipTurn(): void {
     const v = this.ws.view();
-    if (!v) return;
+    if (!v) {
+      return;
+    }
     this.skipUntilTurn.set(v.turn);
     this.lastAutoPassedView = null;
   }
 
   protected playCard(id: CardInstanceId): void {
     const v = this.ws.view();
-    if (!v) return;
+    if (!v) {
+      return;
+    }
     const inst = v.cards[id];
-    if (!inst) return;
+    if (!inst) {
+      return;
+    }
     const def = getCardDefinition(inst.definitionId);
     const playerId: PlayerId = v.forPlayer;
 
@@ -212,22 +250,29 @@ export class Game {
 
   protected tapLand(id: CardInstanceId, color: ManaColor): void {
     const v = this.ws.view();
-    if (!v) return;
+    if (!v) {
+      return;
+    }
     this.ws.submit({ type: ActionType.TapLandForMana, playerId: v.forPlayer, cardId: id, color });
   }
 
   protected toggleAttacker(id: CardInstanceId): void {
     this.selectedAttackers.update((set) => {
       const next = new Set(set);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   }
 
   protected declareAttackers(): void {
     const v = this.ws.view();
-    if (!v) return;
+    if (!v) {
+      return;
+    }
     this.ws.submit({
       type: ActionType.DeclareAttackers,
       playerId: v.forPlayer,
@@ -240,8 +285,11 @@ export class Game {
     const value = (event.target as HTMLSelectElement).value;
     this.blockerAssignments.update((map) => {
       const next = new Map(map);
-      if (value) next.set(blockerId, value as CardInstanceId);
-      else next.delete(blockerId);
+      if (value) {
+        next.set(blockerId, value as CardInstanceId);
+      } else {
+        next.delete(blockerId);
+      }
       return next;
     });
   }
@@ -250,7 +298,9 @@ export class Game {
 
   protected declareBlockers(): void {
     const v = this.ws.view();
-    if (!v) return;
+    if (!v) {
+      return;
+    }
     const assignments = Array.from(this.blockerAssignments().entries()).map(
       ([blockerId, attackerId]) => ({ blockerId, attackerId }),
     );

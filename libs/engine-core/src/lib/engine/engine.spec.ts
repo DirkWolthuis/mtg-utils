@@ -78,7 +78,9 @@ const findInHand = (
   defId: ReturnType<typeof makeCardDefinitionId>,
 ): CardInstanceId | undefined => {
   for (const id of state.players[playerId].hand) {
-    if (state.cards[id].definitionId === defId) return id;
+    if (state.cards[id].definitionId === defId) {
+      return id;
+    }
   }
   return undefined;
 };
@@ -89,7 +91,9 @@ const apply = (
   action: Action,
 ): GameState => {
   const r = engine.apply(state, action);
-  if (!r.ok) throw new Error(`action ${action.type} rejected: ${r.error}`);
+  if (!r.ok) {
+    throw new Error(`action ${action.type} rejected: ${r.error}`);
+  }
   return r.value.state;
 };
 
@@ -100,7 +104,9 @@ describe('engine', () => {
     defId: ReturnType<typeof makeCardDefinitionId>,
   ): { state: GameState; cardId: CardInstanceId } => {
     const existing = findInHand(state, playerId, defId);
-    if (existing) return { state, cardId: existing };
+    if (existing) {
+      return { state, cardId: existing };
+    }
     // Swap top of library for one with the desired definition.
     const lib = state.players[playerId].library;
     let targetId: CardInstanceId | undefined;
@@ -110,9 +116,13 @@ describe('engine', () => {
         break;
       }
     }
-    if (!targetId) throw new Error(`no ${defId} in deck`);
+    if (!targetId) {
+      throw new Error(`no ${defId} in deck`);
+    }
     const handCard = state.players[playerId].hand[0];
-    if (!handCard) throw new Error('hand empty');
+    if (!handCard) {
+      throw new Error('hand empty');
+    }
     const newHand = state.players[playerId].hand.slice();
     const newLib = state.players[playerId].library.slice();
     const handIdx = 0;
@@ -153,7 +163,9 @@ describe('engine', () => {
     const { state, engine } = startBasicGame();
     const active = state.activePlayer;
     const bearsId = findInHand(state, active, BEARS);
-    if (!bearsId) throw new Error('test deck must seat a bears in opening hand');
+    if (!bearsId) {
+      throw new Error('test deck must seat a bears in opening hand');
+    }
     const r = engine.apply(state, {
       type: ActionType.CastCreature,
       playerId: active,
@@ -179,7 +191,9 @@ describe('engine', () => {
       color: 'G',
     });
     expect(tapResult.ok).toBe(true);
-    if (tapResult.ok) s = tapResult.value.state;
+    if (tapResult.ok) {
+      s = tapResult.value.state;
+    }
     expect(s.cards[seated.cardId].tapped).toBe(true);
     expect(s.players[active].manaPool.G).toBe(1);
   });
@@ -396,7 +410,9 @@ describe('engine', () => {
       attackerIds: [aBear],
     });
     expect(r1.ok).toBe(true);
-    if (!r1.ok) return;
+    if (!r1.ok) {
+      return;
+    }
     // After DeclareAttackers, the step advances to declare_blockers (and from there
     // an auto-skip to combat_damage is not triggered since there ARE attackers — the
     // defender must declare blockers).
@@ -408,7 +424,9 @@ describe('engine', () => {
       assignments: [{ blockerId: dBear, attackerId: aBear }],
     });
     expect(r2.ok).toBe(true);
-    if (!r2.ok) return;
+    if (!r2.ok) {
+      return;
+    }
     // After blockers, step_advanced to combat_damage which triggers damage events.
     // Both 2/2 bears trade.
     expect(r2.value.state.cards[aBear].zone).toBe('graveyard');

@@ -6,7 +6,9 @@ export class RoomRegistry {
 
   getOrCreate(id: GameId): GameRoom {
     const existing = this.rooms.get(id);
-    if (existing) return existing;
+    if (existing) {
+      return existing;
+    }
     const room = new GameRoom(id);
     this.rooms.set(id, room);
     return room;

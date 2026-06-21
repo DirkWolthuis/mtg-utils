@@ -13,14 +13,21 @@ export const createEventBus = (): EventBus => {
 
   const on: EventBus['on'] = (eventType, handler) => {
     const existing = byType.get(eventType);
-    if (existing) existing.push(handler);
-    else byType.set(eventType, [handler]);
+    if (existing) {
+      existing.push(handler);
+    } else {
+      byType.set(eventType, [handler]);
+    }
   };
 
   const notify: EventBus['notify'] = (state, event) => {
     const out: GameEvent[] = [];
-    for (const handler of byType.get(event.type) ?? []) out.push(...handler(state, event));
-    for (const handler of byType.get('*') ?? []) out.push(...handler(state, event));
+    for (const handler of byType.get(event.type) ?? []) {
+      out.push(...handler(state, event));
+    }
+    for (const handler of byType.get('*') ?? []) {
+      out.push(...handler(state, event));
+    }
     return out;
   };
 

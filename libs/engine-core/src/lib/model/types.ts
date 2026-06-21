@@ -29,7 +29,9 @@ export const totalMana = (pool: ManaPool): number =>
 export type ManaCost = Partial<Record<ManaColor, number>> & { generic?: number };
 
 export const cmcOf = (cost: ManaCost | null): number => {
-  if (!cost) return 0;
+  if (!cost) {
+    return 0;
+  }
   return (
     (cost.W ?? 0) +
     (cost.U ?? 0) +

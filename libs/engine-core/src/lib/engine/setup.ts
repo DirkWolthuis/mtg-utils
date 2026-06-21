@@ -75,7 +75,9 @@ export const setupGame = (setup: GameSetup): GameState => {
     const hand: CardInstanceId[] = [];
     for (let i = 0; i < Math.min(startingHand, library.length); i++) {
       const drawn = library.shift();
-      if (drawn === undefined) break;
+      if (drawn === undefined) {
+        break;
+      }
       cards[drawn] = { ...cards[drawn], zone: 'hand' };
       hand.push(drawn);
     }

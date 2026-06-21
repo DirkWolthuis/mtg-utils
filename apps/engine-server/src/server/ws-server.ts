@@ -21,7 +21,9 @@ export const startWebSocketServer = (opts: StartOptions): WebSocketServer => {
     const session = createSession(socket);
 
     const sendDirect = (msg: ServerMessage): void => {
-      if (socket.readyState !== socket.OPEN) return;
+      if (socket.readyState !== socket.OPEN) {
+        return;
+      }
       socket.send(JSON.stringify(msg));
     };
 
@@ -63,7 +65,9 @@ export const startWebSocketServer = (opts: StartOptions): WebSocketServer => {
             playerId,
             ready: result.ready,
           });
-          if (result.ready) room.sendStateSync(playerId);
+          if (result.ready) {
+            room.sendStateSync(playerId);
+          }
           return;
         }
         case ClientMessageType.SubmitAction: {

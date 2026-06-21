@@ -30,7 +30,9 @@ const registry = new Map<EffectType, AnyHandler>([
 
 export const runEffect = (effect: Effect, ctx: EffectContext): Result<GameEvent[], string> => {
   const handler = registry.get(effect.type);
-  if (!handler) return err(`no handler registered for effect ${effect.type}`);
+  if (!handler) {
+    return err(`no handler registered for effect ${effect.type}`);
+  }
   return handler(effect, ctx);
 };
 

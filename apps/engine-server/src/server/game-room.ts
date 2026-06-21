@@ -48,7 +48,9 @@ export class GameRoom {
 
   attachSocket(playerId: PlayerId, socket: WebSocket): void {
     const existing = this.players.get(playerId);
-    if (existing) existing.socket = socket;
+    if (existing) {
+      existing.socket = socket;
+    }
   }
 
   join(player: JoinedPlayer): { ok: true; ready: boolean } | { ok: false; reason: string } {
@@ -58,9 +60,13 @@ export class GameRoom {
       existing.socket = player.socket;
       return { ok: true, ready: this.hasStarted };
     }
-    if (this.isFull) return { ok: false, reason: 'game is full' };
+    if (this.isFull) {
+      return { ok: false, reason: 'game is full' };
+    }
     this.players.set(player.playerId, player);
-    if (this.players.size === 2 && !this.hasStarted) this.start();
+    if (this.players.size === 2 && !this.hasStarted) {
+      this.start();
+    }
     return { ok: true, ready: this.hasStarted };
   }
 
@@ -75,13 +81,19 @@ export class GameRoom {
         { id: b.playerId, name: b.name, decklist: b.deck },
       ],
     });
-    for (const p of arr) this.sendStateSync(p.playerId);
+    for (const p of arr) {
+      this.sendStateSync(p.playerId);
+    }
   }
 
   submitAction(action: Action): { ok: true } | { ok: false; reason: string } {
-    if (!this.state) return { ok: false, reason: 'game has not started' };
+    if (!this.state) {
+      return { ok: false, reason: 'game has not started' };
+    }
     const result = this.engine.apply(this.state, action);
-    if (!result.ok) return { ok: false, reason: result.error };
+    if (!result.ok) {
+      return { ok: false, reason: result.error };
+    }
     this.state = result.value.state;
     this.log.push(...result.value.events);
     for (const p of this.players.values()) {
@@ -98,30 +110,42 @@ export class GameRoom {
   }
 
   private viewFor(playerId: PlayerId): PlayerView | null {
-    if (!this.state) return null;
+    if (!this.state) {
+      return null;
+    }
     return projectFor(this.state, playerId);
   }
 
   private send(playerId: PlayerId, msg: ServerMessage): void {
     const p = this.players.get(playerId);
-    if (!p) return;
-    if (p.socket.readyState !== p.socket.OPEN) return;
+    if (!p) {
+      return;
+    }
+    if (p.socket.readyState !== p.socket.OPEN) {
+      return;
+    }
     p.socket.send(JSON.stringify(msg));
   }
 
   private broadcast(msg: ServerMessage): void {
-    for (const p of this.players.values()) this.send(p.playerId, msg);
+    for (const p of this.players.values()) {
+      this.send(p.playerId, msg);
+    }
   }
 
   sendStateSync(playerId: PlayerId): void {
     const view = this.viewFor(playerId);
-    if (!view) return;
+    if (!view) {
+      return;
+    }
     this.send(playerId, { type: ServerMessageType.StateSync, gameId: this.id, view });
   }
 
   private sendEventBatch(playerId: PlayerId, events: GameEvent[]): void {
     const view = this.viewFor(playerId);
-    if (!view) return;
+    if (!view) {
+      return;
+    }
     this.send(playerId, { type: ServerMessageType.EventBatch, gameId: this.id, events, view });
   }
 

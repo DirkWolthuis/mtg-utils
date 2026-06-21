@@ -4,9 +4,13 @@ import { ClientMessageType } from './client-to-server';
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
 
 export const isClientMessage = (raw: unknown): raw is ClientMessage => {
-  if (!isObject(raw)) return false;
+  if (!isObject(raw)) {
+    return false;
+  }
   const msgType = raw['type'];
-  if (typeof msgType !== 'string') return false;
+  if (typeof msgType !== 'string') {
+    return false;
+  }
   switch (msgType) {
     case ClientMessageType.JoinGame:
       return (
