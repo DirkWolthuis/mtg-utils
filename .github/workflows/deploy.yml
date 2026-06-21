@@ -25,26 +25,28 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
+      - name: Link Railway project
+        run: railway link ${{ vars.RAILWAY_PROJECT_ID }}
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
       - name: Create Railway PR environment
         if: github.event_name == 'pull_request'
         run: railway environment new pr-${{ github.event.pull_request.number }} || true
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID }}
 
       - name: Deploy to Railway (production)
         if: github.ref == 'refs/heads/main'
         run: railway up --service mtg-util-game-server --environment production
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID }}
 
       - name: Deploy to Railway (preview)
         if: github.event_name == 'pull_request'
         run: railway up --service mtg-util-game-server --environment pr-${{ github.event.pull_request.number }}
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID }}
 
   cleanup-railway-env:
     if: github.event.action == 'closed'
@@ -57,8 +59,12 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
+      - name: Link Railway project
+        run: railway link ${{ vars.RAILWAY_PROJECT_ID }}
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
       - name: Delete Railway PR environment
         run: railway environment delete pr-${{ github.event.pull_request.number }} --yes
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID }}
