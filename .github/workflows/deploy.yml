@@ -25,11 +25,6 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      - name: Link Railway project
-        run: railway link -p ${{ vars.RAILWAY_PROJECT_ID }}
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-
       - name: Create Railway PR environment
         if: github.event_name == 'pull_request'
         run: railway environment new pr-${{ github.event.pull_request.number }} || true
@@ -58,11 +53,6 @@ jobs:
 
       - name: Install Railway CLI
         run: npm install -g @railway/cli
-
-      - name: Link Railway project
-        run: railway link -p ${{ vars.RAILWAY_PROJECT_ID }}
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
       - name: Delete Railway PR environment
         run: railway environment delete pr-${{ github.event.pull_request.number }} --yes
