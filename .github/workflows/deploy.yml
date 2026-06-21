@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy-game-ui:
+  deploy-engine-server:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     steps:
@@ -20,36 +20,10 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: npm
-
-      - run: npm ci
-
-      - name: Build
-        run: npx nx build game-ui --configuration=production
-
-      - name: Deploy to Netlify (production)
-        if: github.ref == 'refs/heads/main'
-        run: npx netlify-cli deploy --dir=dist/apps/game-ui/browser --prod
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ vars.NETLIFY_SITE_ID }}
-
-      - name: Deploy to Netlify (preview)
-        if: github.event_name == 'pull_request'
-        run: npx netlify-cli deploy --dir=dist/apps/game-ui/browser --alias=pr-${{ github.event.pull_request.number }}
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ vars.NETLIFY_SITE_ID }}
-
-  deploy-engine-server:
-    if: github.event.action != 'closed'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+          node-version: '24'
 
       - name: Install Railway CLI
-        run: curl -fsSL https://railway.com/install.sh | sh
+        run: npm install -g @railway/cli
 
       - name: Deploy to Railway (production)
         if: github.ref == 'refs/heads/main'
@@ -69,8 +43,12 @@ jobs:
     if: github.event.action == 'closed'
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
       - name: Install Railway CLI
-        run: curl -fsSL https://railway.com/install.sh | sh
+        run: npm install -g @railway/cli
 
       - name: Delete Railway PR environment
         run: railway environment delete pr-${{ github.event.pull_request.number }} --yes
