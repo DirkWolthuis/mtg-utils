@@ -1,0 +1,6 @@
+[build]
+  command = "npx nx build game-ui --configuration=production"
+  publish = "dist/apps/game-ui/browser"
+
+[build.environment]
+  NODE_VERSION = "22"
