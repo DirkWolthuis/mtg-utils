@@ -25,6 +25,18 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
+      - name: Create Railway PR environment
+        if: github.event_name == 'pull_request'
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          curl -s -o /dev/null -X POST https://backboard.railway.com/graphql/v2 \
+            -H "Authorization: Bearer $RAILWAY_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"query\":\"mutation{environmentCreate(input:{name:\\\"pr-$PR_NUMBER\\\",projectId:\\\"$RAILWAY_PROJECT_ID\\\"}){id}}\"}"
+
       - name: Deploy to Railway (production)
         if: github.ref == 'refs/heads/main'
         run: railway up --service mtg-util-game-server --environment production
@@ -43,15 +55,19 @@ jobs:
     if: github.event.action == 'closed'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-
       - name: Delete Railway PR environment
-        run: railway environment delete pr-${{ github.event.pull_request.number }} --yes
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          ENV_ID=$(curl -s -X POST https://backboard.railway.com/graphql/v2 \
+            -H "Authorization: Bearer $RAILWAY_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"query\":\"query{project(id:\\\"$RAILWAY_PROJECT_ID\\\"){environments{edges{node{id,name}}}}}\"}" | \
+            jq -r ".data.project.environments.edges[] | select(.node.name==\"pr-$PR_NUMBER\") | .node.id")
+
+          [ -n "$ENV_ID" ] && curl -s -o /dev/null -X POST https://backboard.railway.com/graphql/v2 \
+            -H "Authorization: Bearer $RAILWAY_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"query\":\"mutation{environmentDelete(id:\\\"$ENV_ID\\\")}\"}"
