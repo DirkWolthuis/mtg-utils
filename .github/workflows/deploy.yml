@@ -11,6 +11,10 @@ concurrency:
   group: deploy-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   deploy-engine-server:
     if: github.event.action != 'closed'
