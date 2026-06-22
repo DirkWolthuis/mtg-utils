@@ -1,0 +1,12 @@
+{
+  "name": "@mtg-utils/engine-server",
+  "version": "0.0.1",
+  "private": true,
+  "type": "commonjs",
+  "main": "main.js",
+  "dependencies": {
+    "ws": "^8.21.0",
+    "@mtg-utils/engine-core": "0.0.1",
+    "@mtg-utils/engine-protocol": "0.0.1"
+  }
+}
