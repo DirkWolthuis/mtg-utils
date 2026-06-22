@@ -1,5 +1,16 @@
 [build]
-  command = "npx nx build game-ui --configuration=production"
+  # Build, then write the engine WebSocket URL into config.json in the publish
+  # directory (the SPA fetches it at startup):
+  # - Deploy Previews point at that PR's Railway environment (deterministic URL).
+  # - Production/branch builds use the ENGINE_WS_URL env var set in Netlify.
+  command = """
+npx nx build game-ui --configuration=production
+if [ "$CONTEXT" = "deploy-preview" ]; then
+  echo '{"engineWsUrl":"wss://game-server-pr-'"$REVIEW_ID"'.up.railway.app"}' > dist/apps/game-ui/browser/config.json
+else
+  echo '{"engineWsUrl":"'"$ENGINE_WS_URL"'"}' > dist/apps/game-ui/browser/config.json
+fi
+"""
   publish = "dist/apps/game-ui/browser"
 
 [build.environment]

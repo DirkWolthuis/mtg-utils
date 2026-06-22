@@ -30,7 +30,7 @@ export class EngineWsService {
     playerId: string,
     name: string,
     gameId: string,
-    port: number,
+    url: string,
     deck: CardDefinitionId[],
   ): void {
     this.ws?.close();
@@ -41,7 +41,7 @@ export class EngineWsService {
     this.view.set(null);
     this.lastRejection.set(null);
 
-    const ws = new WebSocket(`ws://localhost:${port}`);
+    const ws = new WebSocket(url);
     this.ws = ws;
 
     ws.onopen = () => {
