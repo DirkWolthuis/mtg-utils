@@ -13,11 +13,12 @@
         "platform": "node",
         "outputPath": "dist/apps/engine-server",
         "format": ["cjs"],
-        "bundle": false,
+        "bundle": true,
+        "thirdParty": true,
+        "external": ["bufferutil", "utf-8-validate"],
         "main": "apps/engine-server/src/main.ts",
         "tsConfig": "apps/engine-server/tsconfig.app.json",
         "assets": ["apps/engine-server/src/assets"],
-        "generatePackageJson": true,
         "esbuildOptions": {
           "sourcemap": true,
           "outExtension": {
@@ -36,31 +37,6 @@
           }
         }
       }
-    },
-    "prune-lockfile": {
-      "dependsOn": ["build"],
-      "cache": true,
-      "executor": "@nx/js:prune-lockfile",
-      "outputs": [
-        "{workspaceRoot}/dist/apps/engine-server/package.json",
-        "{workspaceRoot}/dist/apps/engine-server/package-lock.json"
-      ],
-      "options": {
-        "buildTarget": "build"
-      }
-    },
-    "copy-workspace-modules": {
-      "dependsOn": ["build"],
-      "cache": true,
-      "outputs": ["{workspaceRoot}/dist/apps/engine-server/workspace_modules"],
-      "executor": "@nx/js:copy-workspace-modules",
-      "options": {
-        "buildTarget": "build"
-      }
-    },
-    "prune": {
-      "dependsOn": ["prune-lockfile", "copy-workspace-modules"],
-      "executor": "nx:noop"
     },
     "serve": {
       "continuous": true,
