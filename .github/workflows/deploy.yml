@@ -60,8 +60,10 @@ jobs:
         run: |
           URL=$(railway domain \
             --service game-server \
-            --environment pr-${{ github.event.pull_request.number }})
+            --environment pr-${{ github.event.pull_request.number }} \
+            | grep -oE 'https://[^[:space:]]+' | head -n1)
           gh pr comment ${{ github.event.pull_request.number }} \
+            --edit-last --create-if-none \
             --body "🚀 Preview environment deployed: ${URL}"
         env:
           RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
