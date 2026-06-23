@@ -18,6 +18,7 @@ import type {
 } from '@mtg-utils/engine-core';
 import { ActionType, getCardDefinition } from '@mtg-utils/engine-core';
 import { DEFAULT_DECK, EngineWsService, computeSpent, getMana } from './engine-ws.service';
+import { RuntimeConfigService } from './runtime-config.service';
 
 type CardRow = {
   id: CardInstanceId;
@@ -76,7 +77,7 @@ export class Game {
   protected joinPlayerId = 'p1';
   protected joinName = 'Player 1';
   protected joinGameId = 'g1';
-  protected joinPort = 8080;
+  protected joinUrl = inject(RuntimeConfigService).engineWsUrl();
 
   protected readonly selectedAttackers = signal<Set<CardInstanceId>>(new Set());
   protected readonly blockerAssignments = signal<Map<CardInstanceId, CardInstanceId>>(new Map());
@@ -186,7 +187,7 @@ export class Game {
   // --- Actions ---
 
   protected join(): void {
-    this.ws.connect(this.joinPlayerId, this.joinName, this.joinGameId, this.joinPort, DEFAULT_DECK);
+    this.ws.connect(this.joinPlayerId, this.joinName, this.joinGameId, this.joinUrl, DEFAULT_DECK);
   }
 
   protected pass(): void {

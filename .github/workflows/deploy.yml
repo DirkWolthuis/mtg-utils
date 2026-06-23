@@ -1,0 +1,91 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches: [main]
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  deploy-engine-server:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Link Railway project
+        run: railway link --project ${{ vars.RAILWAY_PROJECT_ID }} --environment production
+        env:
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Create Railway PR environment
+        if: github.event_name == 'pull_request'
+        run: |
+          railway environment new pr-${{ github.event.pull_request.number }} \
+            --copy production \
+            || true
+        env:
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Deploy to Railway (production)
+        if: github.ref == 'refs/heads/main'
+        run: railway up --service game-server --environment production
+        env:
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Deploy to Railway (preview)
+        if: github.event_name == 'pull_request'
+        run: railway up --service game-server --environment pr-${{ github.event.pull_request.number }}
+        env:
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Comment preview URL on PR
+        if: github.event_name == 'pull_request'
+        run: |
+          URL=$(railway domain \
+            --service game-server \
+            --environment pr-${{ github.event.pull_request.number }} \
+            | grep -oE 'https://[^[:space:]]+' | head -n1)
+          gh pr comment ${{ github.event.pull_request.number }} \
+            --edit-last --create-if-none \
+            --body "🚀 Preview environment deployed: ${URL}"
+        env:
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  cleanup-railway-env:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Link Railway project
+        run: railway link --project ${{ vars.RAILWAY_PROJECT_ID }} --environment production
+        env:
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Delete Railway PR environment
+        run: railway environment delete pr-${{ github.event.pull_request.number }} --yes
+        env:
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
