@@ -97,6 +97,15 @@ const apply = (
   return r.value.state;
 };
 
+/** Both players pass priority in turn order (active first), draining one window. */
+const passBoth = (engine: ReturnType<typeof createDefaultEngine>, state: GameState): GameState => {
+  const active = state.activePlayer;
+  const opponent = active === P1 ? P2 : P1;
+  let s = apply(engine, state, { type: ActionType.PassPriority, playerId: active });
+  s = apply(engine, s, { type: ActionType.PassPriority, playerId: opponent });
+  return s;
+};
+
 describe('engine', () => {
   const ensureInHand = (
     state: GameState,
@@ -404,32 +413,143 @@ describe('engine', () => {
       },
     };
 
-    const r1 = engine.apply(seeded, {
+    let s = apply(engine, seeded, {
       type: ActionType.DeclareAttackers,
       playerId: active,
       attackerIds: [aBear],
     });
-    expect(r1.ok).toBe(true);
-    if (!r1.ok) {
-      return;
-    }
-    // After DeclareAttackers, the step advances to declare_blockers (and from there
-    // an auto-skip to combat_damage is not triggered since there ARE attackers — the
-    // defender must declare blockers).
-    expect(r1.value.state.step).toBe('declare_blockers');
+    // Declaring attackers no longer advances the step — a priority window opens
+    // first (active player holds priority) so instants can respond.
+    expect(s.step).toBe('declare_attackers');
+    expect(s.combat.attackersDeclared).toBe(true);
+    expect(s.priorityPlayer).toBe(active);
 
-    const r2 = engine.apply(r1.value.state, {
+    // Both pass: advance into declare_blockers (attackers exist, so no auto-skip).
+    s = passBoth(engine, s);
+    expect(s.step).toBe('declare_blockers');
+
+    s = apply(engine, s, {
       type: ActionType.DeclareBlockers,
       playerId: opponent,
       assignments: [{ blockerId: dBear, attackerId: aBear }],
     });
-    expect(r2.ok).toBe(true);
-    if (!r2.ok) {
-      return;
-    }
-    // After blockers, step_advanced to combat_damage which triggers damage events.
-    // Both 2/2 bears trade.
-    expect(r2.value.state.cards[aBear].zone).toBe('graveyard');
-    expect(r2.value.state.cards[dBear].zone).toBe('graveyard');
+    // Likewise, declaring blockers opens a window before combat damage.
+    expect(s.step).toBe('declare_blockers');
+    expect(s.combat.blockersDeclared).toBe(true);
+
+    // Both pass: advance into combat_damage; the two 2/2 bears trade.
+    s = passBoth(engine, s);
+    expect(s.cards[aBear].zone).toBe('graveyard');
+    expect(s.cards[dBear].zone).toBe('graveyard');
+  });
+
+  it('a combat trick: instant in response to attackers kills the attacker before blocks', () => {
+    const { state, engine } = startBasicGame();
+    const active = state.activePlayer;
+    const opponent = active === P1 ? P2 : P1;
+
+    // Active has a ready bear; opponent holds a Lightning Bolt (instant, R for 3)
+    // and a red mana to cast it. Seed straight into declare_attackers.
+    const aBear: CardInstanceId = state.players[active].library[0];
+    const boltSeat = ensureInHand(state, opponent, INSTANT_BOLT);
+    const boltId = boltSeat.cardId;
+
+    const seeded: GameState = {
+      ...boltSeat.state,
+      step: 'declare_attackers',
+      battlefield: [aBear],
+      players: {
+        ...boltSeat.state.players,
+        [opponent]: {
+          ...boltSeat.state.players[opponent],
+          manaPool: { W: 0, U: 0, B: 0, R: 1, G: 0, C: 0 },
+        },
+      },
+      cards: {
+        ...boltSeat.state.cards,
+        [aBear]: {
+          ...boltSeat.state.cards[aBear],
+          definitionId: BEARS,
+          ownerId: active,
+          controllerId: active,
+          zone: 'battlefield',
+          tapped: false,
+          summoningSick: false,
+          damage: 0,
+        },
+      },
+    };
+
+    let s = apply(engine, seeded, {
+      type: ActionType.DeclareAttackers,
+      playerId: active,
+      attackerIds: [aBear],
+    });
+    // Active passes; opponent now has priority in the post-attackers window.
+    s = apply(engine, s, { type: ActionType.PassPriority, playerId: active });
+    expect(s.priorityPlayer).toBe(opponent);
+
+    // Opponent bolts the attacker in response to attackers.
+    s = apply(engine, s, {
+      type: ActionType.CastInstant,
+      playerId: opponent,
+      cardId: boltId,
+      manaSpent: { R: 1 },
+      targets: [{ kind: 'permanent', cardId: aBear }],
+    });
+    expect(s.stack.length).toBe(1);
+    expect(s.step).toBe('declare_attackers');
+
+    // Caster (opponent) holds priority after casting; both pass — opponent first —
+    // so the bolt resolves and the 2/2 attacker takes 3 and dies via SBA.
+    s = apply(engine, s, { type: ActionType.PassPriority, playerId: opponent });
+    s = apply(engine, s, { type: ActionType.PassPriority, playerId: active });
+    expect(s.cards[aBear].zone).toBe('graveyard');
+
+    // Drive the rest of combat to its end: no living attacker, so the defender
+    // takes no combat damage.
+    s = passBoth(engine, s); // declare_attackers -> declare_blockers
+    expect(s.step).toBe('declare_blockers');
+    s = passBoth(engine, s); // declare_blockers -> combat_damage (no blocks)
+    expect(s.players[opponent].life).toBe(20);
+  });
+
+  it('rejects declaring attackers twice in the same combat', () => {
+    const { state, engine } = startBasicGame();
+    const active = state.activePlayer;
+
+    const aBear: CardInstanceId = state.players[active].library[0];
+    const seeded: GameState = {
+      ...state,
+      step: 'declare_attackers',
+      battlefield: [aBear],
+      cards: {
+        ...state.cards,
+        [aBear]: {
+          ...state.cards[aBear],
+          definitionId: BEARS,
+          ownerId: active,
+          controllerId: active,
+          zone: 'battlefield',
+          tapped: false,
+          summoningSick: false,
+          damage: 0,
+        },
+      },
+    };
+
+    const s = apply(engine, seeded, {
+      type: ActionType.DeclareAttackers,
+      playerId: active,
+      attackerIds: [aBear],
+    });
+    // The window is open but the declaration is locked in — a second declaration
+    // (e.g. trying to tap another creature mid-window) is rejected.
+    const again = engine.apply(s, {
+      type: ActionType.DeclareAttackers,
+      playerId: active,
+      attackerIds: [aBear],
+    });
+    expect(again.ok).toBe(false);
   });
 });

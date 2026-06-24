@@ -37,6 +37,12 @@ export const registerPriorityLoop = (bus: EventBus): void => {
   bus.on('step_advanced', (state) => [
     { type: 'priority_reset', to: state.activePlayer, reason: 'step_started' },
   ]);
+
+  // After attackers/blockers are declared, the active player receives priority
+  // first, opening the window for combat tricks before the step advances.
+  bus.on('combat_declared', (state) => [
+    { type: 'priority_reset', to: state.activePlayer, reason: 'combat_declared' },
+  ]);
 };
 
 const advanceStep = (state: GameState): GameEvent[] => {

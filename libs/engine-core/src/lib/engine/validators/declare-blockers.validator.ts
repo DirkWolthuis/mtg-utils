@@ -12,6 +12,9 @@ export const validateDeclareBlockers = (
   if (state.step !== 'declare_blockers') {
     return err('not declare blockers step');
   }
+  if (state.combat.blockersDeclared) {
+    return err('blockers already declared');
+  }
 
   const defender = otherPlayer(state, state.activePlayer);
   if (action.playerId !== defender) {
@@ -56,11 +59,9 @@ export const validateDeclareBlockers = (
     });
   }
 
-  events.push({
-    type: 'step_advanced',
-    from: 'declare_blockers',
-    to: 'combat_damage',
-    turn: state.turn,
-  });
+  // Don't advance the step here: emitting `combat_declared` opens a priority
+  // window (active player first) so instants can respond to the blocks before
+  // combat damage. The step advances once both players pass priority.
+  events.push({ type: 'combat_declared', declaration: 'blockers' });
   return ok(events);
 };

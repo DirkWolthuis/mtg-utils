@@ -89,8 +89,8 @@ export type PriorityPassed = {
 export type PriorityReset = {
   type: 'priority_reset';
   to: PlayerId;
-  /** Why priority was reset (state change on stack, step transition). */
-  reason: 'stack_changed' | 'step_started';
+  /** Why priority was reset (state change on stack, step transition, combat declaration). */
+  reason: 'stack_changed' | 'step_started' | 'combat_declared';
 };
 
 export type CreatureDied = {
@@ -108,6 +108,18 @@ export type BlockerDeclared = {
   type: 'blocker_declared';
   blockerId: CardInstanceId;
   attackerId: CardInstanceId;
+};
+
+/**
+ * Marks that the turn-based declaration for a combat step is complete. Flips
+ * the matching `combat.attackersDeclared` / `combat.blockersDeclared` flag so
+ * the declaration can't be repeated, then a priority window opens (the loop
+ * resets priority to the active player) before the step advances. This is what
+ * makes combat tricks possible — instants can respond to attackers and blockers.
+ */
+export type CombatDeclared = {
+  type: 'combat_declared';
+  declaration: 'attackers' | 'blockers';
 };
 
 export type CombatDamageMarked = {
@@ -171,6 +183,7 @@ export type GameEvent =
   | CreatureDied
   | AttackerDeclared
   | BlockerDeclared
+  | CombatDeclared
   | CombatDamageMarked
   | DamageClearedAtCleanup
   | SummoningSicknessCleared

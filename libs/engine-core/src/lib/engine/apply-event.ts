@@ -187,6 +187,11 @@ export const applyEvent = (state: GameState, event: GameEvent): GameState => {
         },
       };
 
+    case 'combat_declared': {
+      const flag = event.declaration === 'attackers' ? 'attackersDeclared' : 'blockersDeclared';
+      return { ...state, combat: { ...state.combat, [flag]: true } };
+    }
+
     case 'combat_damage_marked':
       return state;
 

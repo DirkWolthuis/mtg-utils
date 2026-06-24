@@ -13,6 +13,9 @@ export const validateDeclareAttackers = (
   if (state.step !== 'declare_attackers') {
     return err('not declare attackers step');
   }
+  if (state.combat.attackersDeclared) {
+    return err('attackers already declared');
+  }
   const active = requireActive(state, action.playerId);
   if (active) {
     return err(active);
@@ -53,11 +56,9 @@ export const validateDeclareAttackers = (
     });
   }
 
-  events.push({
-    type: 'step_advanced',
-    from: 'declare_attackers',
-    to: 'declare_blockers',
-    turn: state.turn,
-  });
+  // Don't advance the step here: emitting `combat_declared` opens a priority
+  // window (active player first) so instants can respond to the attackers
+  // before blocks. The step advances once both players pass priority.
+  events.push({ type: 'combat_declared', declaration: 'attackers' });
   return ok(events);
 };
