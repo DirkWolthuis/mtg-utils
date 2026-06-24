@@ -2,9 +2,13 @@ import { err, ok, type Result } from '@mtg-utils/engine-util';
 
 import type { CastInstant, CastSorcery } from '../../actions/action';
 import { getCardDefinition } from '../../cards/catalog';
+import { EffectType } from '../../cards/effects/effect-types';
 import type { GameState } from '../../model/game-state';
 import type { StackItem } from '../../model/stack';
+import { StackItemSource } from '../../model/stack';
+import { type CardType, Zone } from '../../model/types';
 import type { GameEvent } from '../events';
+import { GameEventType } from '../events';
 import { manaSpentMatchesCost, poolHasAtLeast } from '../mana';
 import { instantSpeed, nextStackItemId, sorcerySpeed } from './_shared';
 
@@ -16,7 +20,7 @@ import { instantSpeed, nextStackItemId, sorcerySpeed } from './_shared';
 export const castNonPermanentSpell = (
   state: GameState,
   action: CastSorcery | CastInstant,
-  requiredType: 'sorcery' | 'instant',
+  requiredType: CardType.Sorcery | CardType.Instant,
   atInstantSpeed: boolean,
 ): Result<GameEvent[], string> => {
   if (atInstantSpeed) {
@@ -30,7 +34,7 @@ export const castNonPermanentSpell = (
   }
 
   const card = state.cards[action.cardId];
-  if (!card || card.zone !== 'hand' || card.ownerId !== action.playerId) {
+  if (!card || card.zone !== Zone.Hand || card.ownerId !== action.playerId) {
     return err('card not in your hand');
   }
 
@@ -52,7 +56,7 @@ export const castNonPermanentSpell = (
   }
 
   const effects = def.effects ?? [];
-  const targetCount = effects.filter((e) => e.type === 'deal_damage_to_any').length;
+  const targetCount = effects.filter((e) => e.type === EffectType.DealDamageToAny).length;
   const targets = action.targets ?? [];
   if (targets.length < targetCount) {
     return err(`spell needs ${targetCount} target(s)`);
@@ -62,21 +66,21 @@ export const castNonPermanentSpell = (
     id: nextStackItemId(state, card.id),
     controllerId: action.playerId,
     cardId: card.id,
-    source: 'spell',
+    source: StackItemSource.Spell,
     effects,
     targets: targets.slice(0, targetCount),
     manaSpent: action.manaSpent,
   };
 
   return ok<GameEvent[]>([
-    { type: 'mana_spent', playerId: action.playerId, spent: action.manaSpent },
+    { type: GameEventType.ManaSpent, playerId: action.playerId, spent: action.manaSpent },
     {
-      type: 'card_entered_zone',
+      type: GameEventType.CardEnteredZone,
       cardId: card.id,
-      from: 'hand',
-      to: 'stack',
+      from: Zone.Hand,
+      to: Zone.Stack,
       causedBy: action.playerId,
     },
-    { type: 'spell_put_on_stack', item },
+    { type: GameEventType.SpellPutOnStack, item },
   ]);
 };

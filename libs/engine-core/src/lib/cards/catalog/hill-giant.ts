@@ -1,11 +1,11 @@
-import { makeCardDefinitionId } from '../../model/types';
+import { CardType, makeCardDefinitionId } from '../../model/types';
 import type { CardDefinition } from '../card-definition';
 
 export const hillGiant: CardDefinition = {
   id: makeCardDefinitionId('hill-giant'),
   name: 'Hill Giant',
   superTypes: [],
-  types: ['creature'],
+  types: [CardType.Creature],
   subtypes: ['Giant'],
   manaCost: { R: 1, generic: 3 },
   cmc: 4,

@@ -1,9 +1,11 @@
 import { getCardDefinition } from '../cards/catalog';
 import type { GameState } from '../model/game-state';
+import { CardType, GameStatus, Zone } from '../model/types';
 import type { GameEvent } from './events';
+import { GameEventType, PlayerLostReason } from './events';
 
 export const checkStateBasedActions = (state: GameState): GameEvent[] => {
-  if (state.status === 'ended') {
+  if (state.status === GameStatus.Ended) {
     return [];
   }
   const events: GameEvent[] = [];
@@ -12,21 +14,21 @@ export const checkStateBasedActions = (state: GameState): GameEvent[] => {
   // Creatures with lethal damage die
   for (const id of state.battlefield) {
     const c = state.cards[id];
-    if (c.zone !== 'battlefield') {
+    if (c.zone !== Zone.Battlefield) {
       continue;
     }
     const def = getCardDefinition(c.definitionId);
-    if (!def.types.includes('creature')) {
+    if (!def.types.includes(CardType.Creature)) {
       continue;
     }
     const toughness = (def.toughness ?? 0) + c.toughnessMod;
     if (c.damage > 0 && c.damage >= toughness) {
-      events.push({ type: 'creature_died', cardId: id });
+      events.push({ type: GameEventType.CreatureDied, cardId: id });
       events.push({
-        type: 'card_entered_zone',
+        type: GameEventType.CardEnteredZone,
         cardId: id,
-        from: 'battlefield',
-        to: 'graveyard',
+        from: Zone.Battlefield,
+        to: Zone.Graveyard,
       });
     }
   }
@@ -39,7 +41,7 @@ export const checkStateBasedActions = (state: GameState): GameEvent[] => {
     const p = state.players[pid];
     if (p.life <= 0 && !losers.has(pid)) {
       losers.add(pid);
-      events.push({ type: 'player_lost', playerId: pid, reason: 'life' });
+      events.push({ type: GameEventType.PlayerLost, playerId: pid, reason: PlayerLostReason.Life });
     }
   }
 
@@ -48,7 +50,7 @@ export const checkStateBasedActions = (state: GameState): GameEvent[] => {
   const allLosers = new Set([...state.losers, ...Array.from(losers)]);
   const survivors = state.playerOrder.filter((p) => !allLosers.has(p));
   if (allLosers.size > 0 && survivors.length <= 1) {
-    events.push({ type: 'game_ended', winner: survivors[0] ?? null });
+    events.push({ type: GameEventType.GameEnded, winner: survivors[0] ?? null });
   }
 
   return events;

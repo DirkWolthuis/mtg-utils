@@ -1,19 +1,21 @@
 import type { GameState } from '../../model/game-state';
 import { otherPlayer } from '../../model/game-state';
-import type { CardInstanceId, PlayerId, Step } from '../../model/types';
+import type { CardInstanceId, PlayerId } from '../../model/types';
+import { Step } from '../../model/types';
 import type { EventBus } from '../event-bus';
 import type { GameEvent } from '../events';
+import { GameEventType, PlayerLostReason } from '../events';
 import { computeCombatDamageEvents } from './combat';
 
 const intrinsicForStep = (state: GameState, step: Step): GameEvent[] => {
   switch (step) {
-    case 'untap':
+    case Step.Untap:
       return intrinsicUntap(state);
-    case 'draw':
+    case Step.Draw:
       return intrinsicDraw(state);
-    case 'combat_damage':
+    case Step.CombatDamage:
       return computeCombatDamageEvents(state);
-    case 'cleanup':
+    case Step.Cleanup:
       return intrinsicCleanup(state);
     default:
       return [];
@@ -23,17 +25,17 @@ const intrinsicForStep = (state: GameState, step: Step): GameEvent[] => {
 const intrinsicUntap = (state: GameState): GameEvent[] => {
   const active = state.activePlayer;
   const events: GameEvent[] = [];
-  events.push({ type: 'lands_played_reset', playerId: active });
+  events.push({ type: GameEventType.LandsPlayedReset, playerId: active });
   for (const id of state.battlefield) {
     const c = state.cards[id];
     if (c.controllerId !== active) {
       continue;
     }
     if (c.tapped) {
-      events.push({ type: 'permanent_untapped', cardId: id });
+      events.push({ type: GameEventType.PermanentUntapped, cardId: id });
     }
     if (c.summoningSick) {
-      events.push({ type: 'summoning_sickness_cleared', cardId: id });
+      events.push({ type: GameEventType.SummoningSicknessCleared, cardId: id });
     }
   }
   return events;
@@ -48,38 +50,38 @@ const intrinsicDraw = (state: GameState): GameEvent[] => {
   const lib = state.players[active].library;
   if (lib.length === 0) {
     return [
-      { type: 'draw_attempted_empty', playerId: active },
-      { type: 'player_lost', playerId: active, reason: 'deck_out' },
+      { type: GameEventType.DrawAttemptedEmpty, playerId: active },
+      { type: GameEventType.PlayerLost, playerId: active, reason: PlayerLostReason.DeckOut },
     ];
   }
-  return [{ type: 'card_drawn', playerId: active, cardId: lib[0] as CardInstanceId }];
+  return [{ type: GameEventType.CardDrawn, playerId: active, cardId: lib[0] as CardInstanceId }];
 };
 
 const intrinsicCleanup = (state: GameState): GameEvent[] => {
   const events: GameEvent[] = [];
   for (const pid of state.playerOrder) {
-    events.push({ type: 'mana_pool_emptied', playerId: pid });
+    events.push({ type: GameEventType.ManaPoolEmptied, playerId: pid });
   }
-  events.push({ type: 'damage_cleared_at_cleanup' });
+  events.push({ type: GameEventType.DamageClearedAtCleanup });
   return events;
 };
 
 const turnStartedFor = (state: GameState, justEntered: Step, fromStep: Step): GameEvent[] => {
   // turn rolls when cleanup → untap
-  if (fromStep === 'cleanup' && justEntered === 'untap') {
+  if (fromStep === Step.Cleanup && justEntered === Step.Untap) {
     const newActive: PlayerId = otherPlayer(state, state.activePlayer);
-    return [{ type: 'turn_started', turn: state.turn + 1, activePlayer: newActive }];
+    return [{ type: GameEventType.TurnStarted, turn: state.turn + 1, activePlayer: newActive }];
   }
   return [];
 };
 
 const skippableEmptyDeclareSteps = (state: GameState, step: Step): GameEvent[] => {
-  if (step === 'declare_blockers' && state.combat.attackers.length === 0) {
+  if (step === Step.DeclareBlockers && state.combat.attackers.length === 0) {
     return [
       {
-        type: 'step_advanced',
-        from: 'declare_blockers',
-        to: 'combat_damage',
+        type: GameEventType.StepAdvanced,
+        from: Step.DeclareBlockers,
+        to: Step.CombatDamage,
         turn: state.turn,
       },
     ];
@@ -88,8 +90,8 @@ const skippableEmptyDeclareSteps = (state: GameState, step: Step): GameEvent[] =
 };
 
 export const registerStepAdvanceSubscriber = (bus: EventBus): void => {
-  bus.on('step_advanced', (state, event) => {
-    if (event.type !== 'step_advanced') {
+  bus.on(GameEventType.StepAdvanced, (state, event) => {
+    if (event.type !== GameEventType.StepAdvanced) {
       return [];
     }
     // First: any turn_started event for the *new* state

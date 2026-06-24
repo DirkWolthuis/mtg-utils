@@ -3,6 +3,9 @@ import type { Action } from '../actions/action';
 import { ActionType } from '../actions/action';
 import type { GameState } from '../model/game-state';
 import {
+  Step,
+  TargetKind,
+  Zone,
   makeCardDefinitionId,
   makeGameId,
   makePlayerId,
@@ -147,8 +150,8 @@ describe('engine', () => {
         },
         cards: {
           ...state.cards,
-          [targetId]: { ...state.cards[targetId], zone: 'hand' },
-          [handCard]: { ...state.cards[handCard], zone: 'library' },
+          [targetId]: { ...state.cards[targetId], zone: Zone.Hand },
+          [handCard]: { ...state.cards[handCard], zone: Zone.Library },
         },
       },
       cardId: targetId,
@@ -165,7 +168,7 @@ describe('engine', () => {
       cardId: forestId,
     });
     expect(next.players[active].landsPlayedThisTurn).toBe(1);
-    expect(next.cards[forestId].zone).toBe('battlefield');
+    expect(next.cards[forestId].zone).toBe(Zone.Battlefield);
   });
 
   it('rejects casting a creature without enough mana', () => {
@@ -231,11 +234,11 @@ describe('engine', () => {
       playerId: active,
       cardId: boltId,
       manaSpent: { R: 1, C: 1 },
-      targets: [{ kind: 'player', playerId: opponent }],
+      targets: [{ kind: TargetKind.Player, playerId: opponent }],
     });
     // After cast: spell on stack, no damage yet
     expect(s.stack.length).toBe(1);
-    expect(s.cards[boltId].zone).toBe('stack');
+    expect(s.cards[boltId].zone).toBe(Zone.Stack);
     expect(s.players[opponent].life).toBe(20);
 
     s = apply(engine, s, { type: ActionType.PassPriority, playerId: active });
@@ -246,7 +249,7 @@ describe('engine', () => {
     // Both passed: top of stack resolves
     expect(s.stack.length).toBe(0);
     expect(s.players[opponent].life).toBe(17);
-    expect(s.cards[boltId].zone).toBe('graveyard');
+    expect(s.cards[boltId].zone).toBe(Zone.Graveyard);
   });
 
   it("instant can be cast by the non-active player during the active player's turn", () => {
@@ -277,7 +280,7 @@ describe('engine', () => {
       playerId: opponent,
       cardId: boltId,
       manaSpent: { R: 1 },
-      targets: [{ kind: 'player', playerId: active }],
+      targets: [{ kind: TargetKind.Player, playerId: active }],
     });
     expect(s.stack.length).toBe(1);
     expect(s.players[active].life).toBe(20);
@@ -297,7 +300,7 @@ describe('engine', () => {
     // Drive a card_drawn event directly. Choose the top of the library.
     const drawnId = state.players[active].library[0]!;
     const result = engine.drain(state, [{ type: 'card_drawn', playerId: active, cardId: drawnId }]);
-    expect(result.state.cards[drawnId].zone).toBe('hand');
+    expect(result.state.cards[drawnId].zone).toBe(Zone.Hand);
     expect(result.state.players[active].hand).toContain(drawnId);
 
     // And the projected view should include the card so hand() can read its definition.
@@ -335,7 +338,7 @@ describe('engine', () => {
       playerId: active,
       cardId: seatedSorc.cardId,
       manaSpent: { R: 1, C: 1 },
-      targets: [{ kind: 'player', playerId: opponent }],
+      targets: [{ kind: TargetKind.Player, playerId: opponent }],
     });
     expect(s.stack.length).toBe(1);
 
@@ -349,7 +352,7 @@ describe('engine', () => {
       playerId: opponent,
       cardId: seatedInst.cardId,
       manaSpent: { R: 1 },
-      targets: [{ kind: 'player', playerId: active }],
+      targets: [{ kind: TargetKind.Player, playerId: active }],
     });
     expect(s.stack.length).toBe(2);
     // Both effects still pending — no life lost yet
@@ -386,7 +389,7 @@ describe('engine', () => {
 
     const seeded: GameState = {
       ...state,
-      step: 'declare_attackers',
+      step: Step.DeclareAttackers,
       battlefield: [aBear, dBear],
       cards: {
         ...state.cards,
@@ -395,7 +398,7 @@ describe('engine', () => {
           definitionId: BEARS,
           ownerId: active,
           controllerId: active,
-          zone: 'battlefield',
+          zone: Zone.Battlefield,
           tapped: false,
           summoningSick: false,
           damage: 0,
@@ -405,7 +408,7 @@ describe('engine', () => {
           definitionId: BEARS,
           ownerId: opponent,
           controllerId: opponent,
-          zone: 'battlefield',
+          zone: Zone.Battlefield,
           tapped: false,
           summoningSick: false,
           damage: 0,
@@ -420,13 +423,13 @@ describe('engine', () => {
     });
     // Declaring attackers no longer advances the step — a priority window opens
     // first (active player holds priority) so instants can respond.
-    expect(s.step).toBe('declare_attackers');
+    expect(s.step).toBe(Step.DeclareAttackers);
     expect(s.combat.attackersDeclared).toBe(true);
     expect(s.priorityPlayer).toBe(active);
 
     // Both pass: advance into declare_blockers (attackers exist, so no auto-skip).
     s = passBoth(engine, s);
-    expect(s.step).toBe('declare_blockers');
+    expect(s.step).toBe(Step.DeclareBlockers);
 
     s = apply(engine, s, {
       type: ActionType.DeclareBlockers,
@@ -434,13 +437,13 @@ describe('engine', () => {
       assignments: [{ blockerId: dBear, attackerId: aBear }],
     });
     // Likewise, declaring blockers opens a window before combat damage.
-    expect(s.step).toBe('declare_blockers');
+    expect(s.step).toBe(Step.DeclareBlockers);
     expect(s.combat.blockersDeclared).toBe(true);
 
     // Both pass: advance into combat_damage; the two 2/2 bears trade.
     s = passBoth(engine, s);
-    expect(s.cards[aBear].zone).toBe('graveyard');
-    expect(s.cards[dBear].zone).toBe('graveyard');
+    expect(s.cards[aBear].zone).toBe(Zone.Graveyard);
+    expect(s.cards[dBear].zone).toBe(Zone.Graveyard);
   });
 
   it('a combat trick: instant in response to attackers kills the attacker before blocks', () => {
@@ -456,7 +459,7 @@ describe('engine', () => {
 
     const seeded: GameState = {
       ...boltSeat.state,
-      step: 'declare_attackers',
+      step: Step.DeclareAttackers,
       battlefield: [aBear],
       players: {
         ...boltSeat.state.players,
@@ -472,7 +475,7 @@ describe('engine', () => {
           definitionId: BEARS,
           ownerId: active,
           controllerId: active,
-          zone: 'battlefield',
+          zone: Zone.Battlefield,
           tapped: false,
           summoningSick: false,
           damage: 0,
@@ -495,21 +498,21 @@ describe('engine', () => {
       playerId: opponent,
       cardId: boltId,
       manaSpent: { R: 1 },
-      targets: [{ kind: 'permanent', cardId: aBear }],
+      targets: [{ kind: TargetKind.Permanent, cardId: aBear }],
     });
     expect(s.stack.length).toBe(1);
-    expect(s.step).toBe('declare_attackers');
+    expect(s.step).toBe(Step.DeclareAttackers);
 
     // Caster (opponent) holds priority after casting; both pass — opponent first —
     // so the bolt resolves and the 2/2 attacker takes 3 and dies via SBA.
     s = apply(engine, s, { type: ActionType.PassPriority, playerId: opponent });
     s = apply(engine, s, { type: ActionType.PassPriority, playerId: active });
-    expect(s.cards[aBear].zone).toBe('graveyard');
+    expect(s.cards[aBear].zone).toBe(Zone.Graveyard);
 
     // Drive the rest of combat to its end: no living attacker, so the defender
     // takes no combat damage.
     s = passBoth(engine, s); // declare_attackers -> declare_blockers
-    expect(s.step).toBe('declare_blockers');
+    expect(s.step).toBe(Step.DeclareBlockers);
     s = passBoth(engine, s); // declare_blockers -> combat_damage (no blocks)
     expect(s.players[opponent].life).toBe(20);
   });
@@ -521,7 +524,7 @@ describe('engine', () => {
     const aBear: CardInstanceId = state.players[active].library[0];
     const seeded: GameState = {
       ...state,
-      step: 'declare_attackers',
+      step: Step.DeclareAttackers,
       battlefield: [aBear],
       cards: {
         ...state.cards,
@@ -530,7 +533,7 @@ describe('engine', () => {
           definitionId: BEARS,
           ownerId: active,
           controllerId: active,
-          zone: 'battlefield',
+          zone: Zone.Battlefield,
           tapped: false,
           summoningSick: false,
           damage: 0,

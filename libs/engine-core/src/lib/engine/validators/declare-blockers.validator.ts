@@ -3,13 +3,15 @@ import { err, ok, type Result } from '@mtg-utils/engine-util';
 import type { DeclareBlockers } from '../../actions/action';
 import { getCardDefinition } from '../../cards/catalog';
 import { otherPlayer, type GameState } from '../../model/game-state';
+import { CardType, Keyword, Step, Zone } from '../../model/types';
 import type { GameEvent } from '../events';
+import { CombatDeclaration, GameEventType } from '../events';
 
 export const validateDeclareBlockers = (
   state: GameState,
   action: DeclareBlockers,
 ): Result<GameEvent[], string> => {
-  if (state.step !== 'declare_blockers') {
+  if (state.step !== Step.DeclareBlockers) {
     return err('not declare blockers step');
   }
   if (state.combat.blockersDeclared) {
@@ -35,11 +37,11 @@ export const validateDeclareBlockers = (
     usedBlockers.add(a.blockerId);
 
     const b = state.cards[a.blockerId];
-    if (!b || b.zone !== 'battlefield' || b.controllerId !== defender) {
+    if (!b || b.zone !== Zone.Battlefield || b.controllerId !== defender) {
       return err('cannot block with that card');
     }
     const bd = getCardDefinition(b.definitionId);
-    if (!bd.types.includes('creature')) {
+    if (!bd.types.includes(CardType.Creature)) {
       return err('only creatures can block');
     }
     if (b.tapped) {
@@ -48,12 +50,12 @@ export const validateDeclareBlockers = (
 
     const attacker = state.cards[a.attackerId];
     const ad = getCardDefinition(attacker.definitionId);
-    if (ad.keywords.includes('flying') && !bd.keywords.includes('flying')) {
+    if (ad.keywords.includes(Keyword.Flying) && !bd.keywords.includes(Keyword.Flying)) {
       return err('cannot block flying without flying');
     }
 
     events.push({
-      type: 'blocker_declared',
+      type: GameEventType.BlockerDeclared,
       blockerId: a.blockerId,
       attackerId: a.attackerId,
     });
@@ -62,6 +64,6 @@ export const validateDeclareBlockers = (
   // Don't advance the step here: emitting `combat_declared` opens a priority
   // window (active player first) so instants can respond to the blocks before
   // combat damage. The step advances once both players pass priority.
-  events.push({ type: 'combat_declared', declaration: 'blockers' });
+  events.push({ type: GameEventType.CombatDeclared, declaration: CombatDeclaration.Blockers });
   return ok(events);
 };

@@ -43,35 +43,54 @@ export const cmcOf = (cost: ManaCost | null): number => {
   );
 };
 
-export type Zone = 'library' | 'hand' | 'battlefield' | 'graveyard' | 'exile' | 'stack';
+export enum Zone {
+  Library = 'library',
+  Hand = 'hand',
+  Battlefield = 'battlefield',
+  Graveyard = 'graveyard',
+  Exile = 'exile',
+  Stack = 'stack',
+}
 
-export type CardType =
-  | 'land'
-  | 'creature'
-  | 'instant'
-  | 'sorcery'
-  | 'enchantment'
-  | 'artifact'
-  | 'planeswalker';
+export enum CardType {
+  Land = 'land',
+  Creature = 'creature',
+  Instant = 'instant',
+  Sorcery = 'sorcery',
+  Enchantment = 'enchantment',
+  Artifact = 'artifact',
+  Planeswalker = 'planeswalker',
+}
 
 export const isSpellType = (type: CardType): boolean =>
-  type === 'creature' ||
-  type === 'instant' ||
-  type === 'sorcery' ||
-  type === 'enchantment' ||
-  type === 'artifact' ||
-  type === 'planeswalker';
+  type === CardType.Creature ||
+  type === CardType.Instant ||
+  type === CardType.Sorcery ||
+  type === CardType.Enchantment ||
+  type === CardType.Artifact ||
+  type === CardType.Planeswalker;
 
-export type SuperType = 'basic' | 'legendary' | 'snow';
+export enum SuperType {
+  Basic = 'basic',
+  Legendary = 'legendary',
+  Snow = 'snow',
+}
 
-export type Keyword =
-  | 'haste'
-  | 'flying'
-  | 'trample'
-  | 'vigilance'
-  | 'lifelink'
-  | 'deathtouch'
-  | 'first_strike';
+export enum Keyword {
+  Haste = 'haste',
+  Flying = 'flying',
+  Trample = 'trample',
+  Vigilance = 'vigilance',
+  Lifelink = 'lifelink',
+  Deathtouch = 'deathtouch',
+  FirstStrike = 'first_strike',
+}
+
+/** Shared target discriminant for damage events and targeted effects. */
+export enum TargetKind {
+  Player = 'player',
+  Permanent = 'permanent',
+}
 
 export type CardInstance = {
   id: CardInstanceId;
@@ -98,56 +117,63 @@ export type Player = {
   landsPlayedThisTurn: number;
 };
 
-export type Phase = 'beginning' | 'main1' | 'combat' | 'main2' | 'ending';
+export enum Phase {
+  Beginning = 'beginning',
+  Main1 = 'main1',
+  Combat = 'combat',
+  Main2 = 'main2',
+  Ending = 'ending',
+}
 
-export type Step =
-  | 'untap'
-  | 'upkeep'
-  | 'draw'
-  | 'main1'
-  | 'begin_combat'
-  | 'declare_attackers'
-  | 'declare_blockers'
-  | 'combat_damage'
-  | 'end_combat'
-  | 'main2'
-  | 'end'
-  | 'cleanup';
+export enum Step {
+  Untap = 'untap',
+  Upkeep = 'upkeep',
+  Draw = 'draw',
+  Main1 = 'main1',
+  BeginCombat = 'begin_combat',
+  DeclareAttackers = 'declare_attackers',
+  DeclareBlockers = 'declare_blockers',
+  CombatDamage = 'combat_damage',
+  EndCombat = 'end_combat',
+  Main2 = 'main2',
+  End = 'end',
+  Cleanup = 'cleanup',
+}
 
 export const STEP_ORDER: Step[] = [
-  'untap',
-  'upkeep',
-  'draw',
-  'main1',
-  'begin_combat',
-  'declare_attackers',
-  'declare_blockers',
-  'combat_damage',
-  'end_combat',
-  'main2',
-  'end',
-  'cleanup',
+  Step.Untap,
+  Step.Upkeep,
+  Step.Draw,
+  Step.Main1,
+  Step.BeginCombat,
+  Step.DeclareAttackers,
+  Step.DeclareBlockers,
+  Step.CombatDamage,
+  Step.EndCombat,
+  Step.Main2,
+  Step.End,
+  Step.Cleanup,
 ];
 
 export const phaseOfStep = (step: Step): Phase => {
   switch (step) {
-    case 'untap':
-    case 'upkeep':
-    case 'draw':
-      return 'beginning';
-    case 'main1':
-      return 'main1';
-    case 'begin_combat':
-    case 'declare_attackers':
-    case 'declare_blockers':
-    case 'combat_damage':
-    case 'end_combat':
-      return 'combat';
-    case 'main2':
-      return 'main2';
-    case 'end':
-    case 'cleanup':
-      return 'ending';
+    case Step.Untap:
+    case Step.Upkeep:
+    case Step.Draw:
+      return Phase.Beginning;
+    case Step.Main1:
+      return Phase.Main1;
+    case Step.BeginCombat:
+    case Step.DeclareAttackers:
+    case Step.DeclareBlockers:
+    case Step.CombatDamage:
+    case Step.EndCombat:
+      return Phase.Combat;
+    case Step.Main2:
+      return Phase.Main2;
+    case Step.End:
+    case Step.Cleanup:
+      return Phase.Ending;
   }
 };
 
@@ -175,4 +201,8 @@ export const emptyCombat = (): CombatState => ({
   blockersDeclared: false,
 });
 
-export type GameStatus = 'waiting' | 'active' | 'ended';
+export enum GameStatus {
+  Waiting = 'waiting',
+  Active = 'active',
+  Ended = 'ended',
+}

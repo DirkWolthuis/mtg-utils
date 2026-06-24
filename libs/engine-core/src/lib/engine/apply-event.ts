@@ -1,8 +1,17 @@
 import type { GameState } from '../model/game-state';
 import { otherPlayer } from '../model/game-state';
-import type { CardInstance, CardInstanceId, Player, PlayerId, Step } from '../model/types';
-import { STEP_ORDER, emptyCombat, emptyManaPool } from '../model/types';
+import type { CardInstance, CardInstanceId, Player, PlayerId } from '../model/types';
+import {
+  GameStatus,
+  STEP_ORDER,
+  Step,
+  TargetKind,
+  Zone,
+  emptyCombat,
+  emptyManaPool,
+} from '../model/types';
 import type { GameEvent } from './events';
+import { CombatDeclaration, GameEventType } from './events';
 
 const updateCard = (
   state: GameState,
@@ -28,16 +37,16 @@ const removeFromZone = (player: Player, cardId: CardInstanceId): Partial<Player>
 const addToZone = (
   player: Player,
   cardId: CardInstanceId,
-  zone: 'library' | 'hand' | 'graveyard' | 'exile',
+  zone: Zone.Library | Zone.Hand | Zone.Graveyard | Zone.Exile,
 ): Partial<Player> => {
   switch (zone) {
-    case 'library':
+    case Zone.Library:
       return { library: [...player.library, cardId] };
-    case 'hand':
+    case Zone.Hand:
       return { hand: [...player.hand, cardId] };
-    case 'graveyard':
+    case Zone.Graveyard:
       return { graveyard: [...player.graveyard, cardId] };
-    case 'exile':
+    case Zone.Exile:
       return { exile: [...player.exile, cardId] };
   }
 };
@@ -50,7 +59,7 @@ const nextStep = (current: Step): { step: Step; wraps: boolean } => {
 
 export const applyEvent = (state: GameState, event: GameEvent): GameState => {
   switch (event.type) {
-    case 'card_entered_zone': {
+    case GameEventType.CardEnteredZone: {
       const card = state.cards[event.cardId];
       const owner = state.players[card.ownerId];
 
@@ -59,19 +68,19 @@ export const applyEvent = (state: GameState, event: GameEvent): GameState => {
 
       let battlefield = state.battlefield.filter((c) => c !== event.cardId);
 
-      if (event.to === 'battlefield') {
+      if (event.to === Zone.Battlefield) {
         battlefield = [...battlefield, event.cardId];
-      } else if (event.to !== 'stack') {
-        // 'stack' is tracked via state.stack; nothing to add to per-player zones.
+      } else if (event.to !== Zone.Stack) {
+        // Stack is tracked via state.stack; nothing to add to per-player zones.
         Object.assign(ownerPatch, addToZone(owner, event.cardId, event.to));
       }
 
       const cardPatch: Partial<CardInstance> = { zone: event.to };
-      if (event.to === 'battlefield') {
+      if (event.to === Zone.Battlefield) {
         cardPatch.tapped = false;
         cardPatch.damage = 0;
         cardPatch.summoningSick = true;
-      } else if (event.from === 'battlefield') {
+      } else if (event.from === Zone.Battlefield) {
         cardPatch.tapped = false;
         cardPatch.damage = 0;
         cardPatch.summoningSick = false;
@@ -84,19 +93,19 @@ export const applyEvent = (state: GameState, event: GameEvent): GameState => {
       return next;
     }
 
-    case 'permanent_tapped':
+    case GameEventType.PermanentTapped:
       return updateCard(state, event.cardId, { tapped: true });
 
-    case 'permanent_untapped':
+    case GameEventType.PermanentUntapped:
       return updateCard(state, event.cardId, { tapped: false });
 
-    case 'mana_produced': {
+    case GameEventType.ManaProduced: {
       const p = state.players[event.playerId];
       const pool = { ...p.manaPool, [event.color]: p.manaPool[event.color] + event.amount };
       return updatePlayer(state, event.playerId, { manaPool: pool });
     }
 
-    case 'mana_spent': {
+    case GameEventType.ManaSpent: {
       const p = state.players[event.playerId];
       const pool = { ...p.manaPool };
       for (const [color, amount] of Object.entries(event.spent)) {
@@ -106,45 +115,45 @@ export const applyEvent = (state: GameState, event: GameEvent): GameState => {
       return updatePlayer(state, event.playerId, { manaPool: pool });
     }
 
-    case 'mana_pool_emptied':
+    case GameEventType.ManaPoolEmptied:
       return updatePlayer(state, event.playerId, { manaPool: emptyManaPool() });
 
-    case 'damage_dealt': {
-      if (event.target.kind === 'player') {
+    case GameEventType.DamageDealt: {
+      if (event.target.kind === TargetKind.Player) {
         return state;
       }
       const card = state.cards[event.target.cardId];
       return updateCard(state, card.id, { damage: card.damage + event.amount });
     }
 
-    case 'life_changed': {
+    case GameEventType.LifeChanged: {
       const p = state.players[event.playerId];
       return updatePlayer(state, event.playerId, { life: p.life + event.delta });
     }
 
-    case 'card_drawn': {
+    case GameEventType.CardDrawn: {
       const p = state.players[event.playerId];
       const moved = updatePlayer(state, event.playerId, {
         library: p.library.slice(1),
         hand: [...p.hand, event.cardId],
       });
-      return updateCard(moved, event.cardId, { zone: 'hand' });
+      return updateCard(moved, event.cardId, { zone: Zone.Hand });
     }
 
-    case 'draw_attempted_empty':
+    case GameEventType.DrawAttemptedEmpty:
       return state;
 
-    case 'land_played': {
+    case GameEventType.LandPlayed: {
       const p = state.players[event.playerId];
       return updatePlayer(state, event.playerId, {
         landsPlayedThisTurn: p.landsPlayedThisTurn + 1,
       });
     }
 
-    case 'spell_put_on_stack':
+    case GameEventType.SpellPutOnStack:
       return { ...state, stack: [...state.stack, event.item], consecutivePasses: 0 };
 
-    case 'stack_item_resolved': {
+    case GameEventType.StackItemResolved: {
       const idx = state.stack.findIndex((s) => s.id === event.stackItemId);
       if (idx < 0) {
         return state;
@@ -154,16 +163,16 @@ export const applyEvent = (state: GameState, event: GameEvent): GameState => {
       return { ...state, stack, consecutivePasses: 0 };
     }
 
-    case 'priority_passed':
+    case GameEventType.PriorityPassed:
       return { ...state, priorityPlayer: event.to, consecutivePasses: state.consecutivePasses + 1 };
 
-    case 'priority_reset':
+    case GameEventType.PriorityReset:
       return { ...state, priorityPlayer: event.to, consecutivePasses: 0 };
 
-    case 'creature_died':
+    case GameEventType.CreatureDied:
       return state;
 
-    case 'attacker_declared':
+    case GameEventType.AttackerDeclared:
       return {
         ...state,
         combat: {
@@ -175,7 +184,7 @@ export const applyEvent = (state: GameState, event: GameEvent): GameState => {
         },
       };
 
-    case 'blocker_declared':
+    case GameEventType.BlockerDeclared:
       return {
         ...state,
         combat: {
@@ -187,15 +196,18 @@ export const applyEvent = (state: GameState, event: GameEvent): GameState => {
         },
       };
 
-    case 'combat_declared': {
-      const flag = event.declaration === 'attackers' ? 'attackersDeclared' : 'blockersDeclared';
+    case GameEventType.CombatDeclared: {
+      const flag =
+        event.declaration === CombatDeclaration.Attackers
+          ? 'attackersDeclared'
+          : 'blockersDeclared';
       return { ...state, combat: { ...state.combat, [flag]: true } };
     }
 
-    case 'combat_damage_marked':
+    case GameEventType.CombatDamageMarked:
       return state;
 
-    case 'damage_cleared_at_cleanup': {
+    case GameEventType.DamageClearedAtCleanup: {
       const cards = { ...state.cards };
       for (const id of state.battlefield) {
         if (cards[id].damage > 0) {
@@ -205,34 +217,34 @@ export const applyEvent = (state: GameState, event: GameEvent): GameState => {
       return { ...state, cards };
     }
 
-    case 'summoning_sickness_cleared':
+    case GameEventType.SummoningSicknessCleared:
       return updateCard(state, event.cardId, { summoningSick: false });
 
-    case 'step_advanced': {
+    case GameEventType.StepAdvanced: {
       const next = nextStep(state.step);
       let s: GameState = { ...state, step: event.to };
       if (next.wraps) {
         s = { ...s, turn: s.turn + 1, activePlayer: otherPlayer(s, s.activePlayer) };
       }
-      if (event.to === 'begin_combat' || event.to === 'main1' || event.to === 'untap') {
+      if (event.to === Step.BeginCombat || event.to === Step.Main1 || event.to === Step.Untap) {
         s = { ...s, combat: emptyCombat() };
       }
       return s;
     }
 
-    case 'turn_started':
+    case GameEventType.TurnStarted:
       return state;
 
-    case 'lands_played_reset':
+    case GameEventType.LandsPlayedReset:
       return updatePlayer(state, event.playerId, { landsPlayedThisTurn: 0 });
 
-    case 'player_lost':
+    case GameEventType.PlayerLost:
       if (state.losers.includes(event.playerId)) {
         return state;
       }
       return { ...state, losers: [...state.losers, event.playerId] };
 
-    case 'game_ended':
-      return { ...state, status: 'ended', winner: event.winner };
+    case GameEventType.GameEnded:
+      return { ...state, status: GameStatus.Ended, winner: event.winner };
   }
 };

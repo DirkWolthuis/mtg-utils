@@ -1,7 +1,15 @@
 import { getCardDefinition } from '../../cards/catalog';
 import type { GameState } from '../../model/game-state';
 import type { CardInstanceId } from '../../model/types';
+import { Keyword, TargetKind, Zone } from '../../model/types';
 import type { GameEvent } from '../events';
+import { GameEventType, LifeChangeReason } from '../events';
+
+/** Which combat-damage sub-step is being computed. */
+enum DamagePass {
+  FirstStrike = 'first_strike',
+  Regular = 'regular',
+}
 
 type PowerToughness = {
   power: number;
@@ -17,35 +25,35 @@ const ptOf = (state: GameState, cardId: CardInstanceId): PowerToughness => {
   };
 };
 
-const hasKeyword = (state: GameState, cardId: CardInstanceId, kw: string): boolean => {
+const hasKeyword = (state: GameState, cardId: CardInstanceId, kw: Keyword): boolean => {
   const c = state.cards[cardId];
   const def = getCardDefinition(c.definitionId);
-  return def.keywords.includes(kw as never);
+  return def.keywords.includes(kw);
 };
 
 /**
  * Compute the events for combat damage on a single combat sub-step.
- * `firstStrike` toggles whether we only emit damage from creatures that deal damage
+ * `pass` toggles whether we only emit damage from creatures that deal damage
  * in the first-strike sub-step (those with first_strike). The non-first-strike pass
  * emits damage from creatures still alive that did not deal first-strike damage,
  * plus creatures with first_strike that survived (in v0, simplification: first
  * strike creatures only deal damage in the first-strike sub-step).
  */
-const damageForPass = (state: GameState, pass: 'first_strike' | 'regular'): GameEvent[] => {
+const damageForPass = (state: GameState, pass: DamagePass): GameEvent[] => {
   const events: GameEvent[] = [];
   const livingOnBattlefield = (id: CardInstanceId): boolean =>
-    state.cards[id]?.zone === 'battlefield';
+    state.cards[id]?.zone === Zone.Battlefield;
 
   for (const attack of state.combat.attackers) {
     const attackerId = attack.attackerId;
     if (!livingOnBattlefield(attackerId)) {
       continue;
     }
-    const aFirstStrike = hasKeyword(state, attackerId, 'first_strike');
-    if (pass === 'first_strike' && !aFirstStrike) {
+    const aFirstStrike = hasKeyword(state, attackerId, Keyword.FirstStrike);
+    if (pass === DamagePass.FirstStrike && !aFirstStrike) {
       continue;
     }
-    if (pass === 'regular' && aFirstStrike) {
+    if (pass === DamagePass.Regular && aFirstStrike) {
       continue;
     }
 
@@ -59,31 +67,31 @@ const damageForPass = (state: GameState, pass: 'first_strike' | 'regular'): Game
     if (blockers.length === 0) {
       // Unblocked: damage to defending player
       events.push({
-        type: 'damage_dealt',
+        type: GameEventType.DamageDealt,
         sourceCardId: attackerId,
-        target: { kind: 'player', playerId: attack.defenderId },
+        target: { kind: TargetKind.Player, playerId: attack.defenderId },
         amount: attackerPT.power,
         combat: true,
       });
       events.push({
-        type: 'life_changed',
+        type: GameEventType.LifeChanged,
         playerId: attack.defenderId,
         delta: -attackerPT.power,
-        reason: 'damage',
+        reason: LifeChangeReason.Damage,
       });
-      if (hasKeyword(state, attackerId, 'lifelink')) {
+      if (hasKeyword(state, attackerId, Keyword.Lifelink)) {
         events.push({
-          type: 'life_changed',
+          type: GameEventType.LifeChanged,
           playerId: state.cards[attackerId].controllerId,
           delta: attackerPT.power,
-          reason: 'lifelink',
+          reason: LifeChangeReason.Lifelink,
         });
       }
     } else {
       // Blocked: assign damage in order to blockers (v0: simple lethal-then-overflow)
       let remaining = attackerPT.power;
-      const aTrample = hasKeyword(state, attackerId, 'trample');
-      const aDeathtouch = hasKeyword(state, attackerId, 'deathtouch');
+      const aTrample = hasKeyword(state, attackerId, Keyword.Trample);
+      const aDeathtouch = hasKeyword(state, attackerId, Keyword.Deathtouch);
 
       for (const b of blockers) {
         if (!livingOnBattlefield(b.blockerId)) {
@@ -95,18 +103,18 @@ const damageForPass = (state: GameState, pass: 'first_strike' | 'regular'): Game
         const assigned = Math.min(remaining, lethalNeeded);
         if (assigned > 0) {
           events.push({
-            type: 'damage_dealt',
+            type: GameEventType.DamageDealt,
             sourceCardId: attackerId,
-            target: { kind: 'permanent', cardId: b.blockerId },
+            target: { kind: TargetKind.Permanent, cardId: b.blockerId },
             amount: assigned,
             combat: true,
           });
-          if (hasKeyword(state, attackerId, 'lifelink')) {
+          if (hasKeyword(state, attackerId, Keyword.Lifelink)) {
             events.push({
-              type: 'life_changed',
+              type: GameEventType.LifeChanged,
               playerId: state.cards[attackerId].controllerId,
               delta: assigned,
-              reason: 'lifelink',
+              reason: LifeChangeReason.Lifelink,
             });
           }
           remaining -= assigned;
@@ -115,24 +123,24 @@ const damageForPass = (state: GameState, pass: 'first_strike' | 'regular'): Game
 
       if (aTrample && remaining > 0) {
         events.push({
-          type: 'damage_dealt',
+          type: GameEventType.DamageDealt,
           sourceCardId: attackerId,
-          target: { kind: 'player', playerId: attack.defenderId },
+          target: { kind: TargetKind.Player, playerId: attack.defenderId },
           amount: remaining,
           combat: true,
         });
         events.push({
-          type: 'life_changed',
+          type: GameEventType.LifeChanged,
           playerId: attack.defenderId,
           delta: -remaining,
-          reason: 'damage',
+          reason: LifeChangeReason.Damage,
         });
-        if (hasKeyword(state, attackerId, 'lifelink')) {
+        if (hasKeyword(state, attackerId, Keyword.Lifelink)) {
           events.push({
-            type: 'life_changed',
+            type: GameEventType.LifeChanged,
             playerId: state.cards[attackerId].controllerId,
             delta: remaining,
-            reason: 'lifelink',
+            reason: LifeChangeReason.Lifelink,
           });
         }
       }
@@ -142,11 +150,11 @@ const damageForPass = (state: GameState, pass: 'first_strike' | 'regular'): Game
         if (!livingOnBattlefield(b.blockerId)) {
           continue;
         }
-        const bFirstStrike = hasKeyword(state, b.blockerId, 'first_strike');
-        if (pass === 'first_strike' && !bFirstStrike) {
+        const bFirstStrike = hasKeyword(state, b.blockerId, Keyword.FirstStrike);
+        if (pass === DamagePass.FirstStrike && !bFirstStrike) {
           continue;
         }
-        if (pass === 'regular' && bFirstStrike) {
+        if (pass === DamagePass.Regular && bFirstStrike) {
           continue;
         }
         const bPT = ptOf(state, b.blockerId);
@@ -154,18 +162,18 @@ const damageForPass = (state: GameState, pass: 'first_strike' | 'regular'): Game
           continue;
         }
         events.push({
-          type: 'damage_dealt',
+          type: GameEventType.DamageDealt,
           sourceCardId: b.blockerId,
-          target: { kind: 'permanent', cardId: attackerId },
+          target: { kind: TargetKind.Permanent, cardId: attackerId },
           amount: bPT.power,
           combat: true,
         });
-        if (hasKeyword(state, b.blockerId, 'lifelink')) {
+        if (hasKeyword(state, b.blockerId, Keyword.Lifelink)) {
           events.push({
-            type: 'life_changed',
+            type: GameEventType.LifeChanged,
             playerId: state.cards[b.blockerId].controllerId,
             delta: bPT.power,
-            reason: 'lifelink',
+            reason: LifeChangeReason.Lifelink,
           });
         }
       }
@@ -183,7 +191,7 @@ export const computeCombatDamageEvents = (state: GameState): GameEvent[] => {
   // between events will clean up creatures that died in the first-strike pass before
   // their regular damage entries are processed (damage_dealt against a card that's no
   // longer on the battlefield becomes a no-op via applyEvent's lookup).
-  const fs = damageForPass(state, 'first_strike');
-  const reg = damageForPass(state, 'regular');
-  return [...fs, { type: 'combat_damage_marked' }, ...reg];
+  const fs = damageForPass(state, DamagePass.FirstStrike);
+  const reg = damageForPass(state, DamagePass.Regular);
+  return [...fs, { type: GameEventType.CombatDamageMarked }, ...reg];
 };

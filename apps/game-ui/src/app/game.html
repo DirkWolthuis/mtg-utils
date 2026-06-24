@@ -1,4 +1,4 @@
-@if (ws.connectionStatus() === 'disconnected') {
+@if (ws.connectionStatus() === ConnectionStatus.Disconnected) {
 <div class="join-form">
   <h2>Join Game</h2>
   <label>
@@ -19,9 +19,9 @@
   </label>
   <button (click)="join()">Connect</button>
 </div>
-} @else if (ws.connectionStatus() === 'connecting') {
+} @else if (ws.connectionStatus() === ConnectionStatus.Connecting) {
 <p>Connecting…</p>
-} @else if (ws.connectionStatus() === 'waiting') {
+} @else if (ws.connectionStatus() === ConnectionStatus.Waiting) {
 <p>Waiting for opponent…</p>
 <button (click)="ws.disconnect()">Disconnect</button>
 } @else if (ws.view(); as v) {
@@ -62,11 +62,11 @@
     Skip Turn{{ isSkipping() ? ' (active)' : '' }}
   </button>
   <button (click)="concede()">Concede</button>
-  @if (v.step === 'declare_attackers' && v.activePlayer === v.forPlayer) {
+  @if (v.step === Step.DeclareAttackers && v.activePlayer === v.forPlayer) {
   <button (click)="declareAttackers()">
     Declare Attackers ({{ selectedAttackers().size }} selected)
   </button>
-  } @if (v.step === 'declare_blockers' && v.activePlayer !== v.forPlayer) {
+  } @if (v.step === Step.DeclareBlockers && v.activePlayer !== v.forPlayer) {
   <button [disabled]="!hasPriority()" (click)="declareBlockers()">
     Declare Blockers ({{ blockerAssignments().size }} assigned)
   </button>
@@ -105,16 +105,17 @@
       (card.instance.damage > 0) { [dmg:{{ card.instance.damage }}] }
     </span>
     <div class="actions">
-      @if (card.types.includes('land') && !card.instance.tapped) { @for (color of card.produces;
-      track color) {
+      @if (card.types.includes(CardType.Land) && !card.instance.tapped) { @for (color of
+      card.produces; track color) {
       <button (click)="tapLand(card.id, color)">Tap {{ color }}</button>
-      } } @if ( v.step === 'declare_attackers' && v.activePlayer === v.forPlayer &&
-      card.types.includes('creature') && !card.instance.tapped && !card.instance.summoningSick ) {
+      } } @if ( v.step === Step.DeclareAttackers && v.activePlayer === v.forPlayer &&
+      card.types.includes(CardType.Creature) && !card.instance.tapped &&
+      !card.instance.summoningSick ) {
       <button (click)="toggleAttacker(card.id)">
         {{ selectedAttackers().has(card.id) ? '✓ Attacking' : 'Attack' }}
       </button>
-      } @if ( v.step === 'declare_blockers' && v.activePlayer !== v.forPlayer &&
-      card.types.includes('creature') && !card.instance.tapped ) {
+      } @if ( v.step === Step.DeclareBlockers && v.activePlayer !== v.forPlayer &&
+      card.types.includes(CardType.Creature) && !card.instance.tapped ) {
       <select (change)="onBlockerChange(card.id, $event)">
         <option value="">-- not blocking --</option>
         @for (atk of attackerRows(); track atk.id) {

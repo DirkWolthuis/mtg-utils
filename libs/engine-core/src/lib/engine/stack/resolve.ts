@@ -1,8 +1,11 @@
 import { getCardDefinition } from '../../cards/catalog';
 import { runEffect } from '../../cards/effects/effect-registry';
+import { EffectType } from '../../cards/effects/effect-types';
 import type { GameState } from '../../model/game-state';
 import type { StackItem } from '../../model/stack';
+import { CardType, Zone } from '../../model/types';
 import type { GameEvent } from '../events';
+import { GameEventType } from '../events';
 
 /**
  * Compute the events that resolving a stack item produces. Targets are
@@ -18,30 +21,31 @@ import type { GameEvent } from '../events';
 export const resolveStackItem = (state: GameState, item: StackItem): GameEvent[] => {
   const card = state.cards[item.cardId];
   if (!card) {
-    return [{ type: 'stack_item_resolved', stackItemId: item.id }];
+    return [{ type: GameEventType.StackItemResolved, stackItemId: item.id }];
   }
   const def = getCardDefinition(card.definitionId);
 
   const events: GameEvent[] = [];
 
   const isPermanent =
-    def.types.includes('creature') ||
-    def.types.includes('artifact') ||
-    def.types.includes('enchantment') ||
-    def.types.includes('planeswalker');
+    def.types.includes(CardType.Creature) ||
+    def.types.includes(CardType.Artifact) ||
+    def.types.includes(CardType.Enchantment) ||
+    def.types.includes(CardType.Planeswalker);
 
   if (isPermanent) {
     events.push({
-      type: 'card_entered_zone',
+      type: GameEventType.CardEnteredZone,
       cardId: card.id,
-      from: 'stack',
-      to: 'battlefield',
+      from: Zone.Stack,
+      to: Zone.Battlefield,
     });
   } else {
     // Instant / sorcery: run effect descriptors against current state, then graveyard.
     let targetIdx = 0;
     for (const effect of item.effects) {
-      const target = effect.type === 'deal_damage_to_any' ? item.targets[targetIdx++] : undefined;
+      const target =
+        effect.type === EffectType.DealDamageToAny ? item.targets[targetIdx++] : undefined;
       const ctx = {
         state,
         casterId: item.controllerId,
@@ -55,13 +59,13 @@ export const resolveStackItem = (state: GameState, item: StackItem): GameEvent[]
       // Illegal-at-resolve errors are swallowed — analogous to fizzling.
     }
     events.push({
-      type: 'card_entered_zone',
+      type: GameEventType.CardEnteredZone,
       cardId: card.id,
-      from: 'stack',
-      to: 'graveyard',
+      from: Zone.Stack,
+      to: Zone.Graveyard,
     });
   }
 
-  events.push({ type: 'stack_item_resolved', stackItemId: item.id });
+  events.push({ type: GameEventType.StackItemResolved, stackItemId: item.id });
   return events;
 };

@@ -7,7 +7,14 @@ import type {
   GameId,
   PlayerId,
 } from '../model/types';
-import { emptyCombat, emptyManaPool, makeCardInstanceId } from '../model/types';
+import {
+  GameStatus,
+  Step,
+  Zone,
+  emptyCombat,
+  emptyManaPool,
+  makeCardInstanceId,
+} from '../model/types';
 import { nextInt } from './rng';
 import { shuffle } from './shuffle';
 
@@ -40,7 +47,7 @@ export const setupGame = (setup: GameSetup): GameState => {
       definitionId: defId,
       ownerId,
       controllerId: ownerId,
-      zone: 'library',
+      zone: Zone.Library,
       tapped: false,
       powerMod: 0,
       toughnessMod: 0,
@@ -78,7 +85,7 @@ export const setupGame = (setup: GameSetup): GameState => {
       if (drawn === undefined) {
         break;
       }
-      cards[drawn] = { ...cards[drawn], zone: 'hand' };
+      cards[drawn] = { ...cards[drawn], zone: Zone.Hand };
       hand.push(drawn);
     }
 
@@ -106,7 +113,7 @@ export const setupGame = (setup: GameSetup): GameState => {
 
   return {
     id: setup.id,
-    status: 'active',
+    status: GameStatus.Active,
     playerOrder,
     players,
     cards,
@@ -116,7 +123,7 @@ export const setupGame = (setup: GameSetup): GameState => {
     priorityPlayer: activePlayer,
     consecutivePasses: 0,
     turn: 1,
-    step: 'main1',
+    step: Step.Main1,
     combat: emptyCombat(),
     seed: setup.seed,
     rngState,

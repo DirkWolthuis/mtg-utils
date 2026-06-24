@@ -4,7 +4,10 @@ import type { CastCreature } from '../../actions/action';
 import { getCardDefinition } from '../../cards/catalog';
 import type { GameState } from '../../model/game-state';
 import type { StackItem } from '../../model/stack';
+import { StackItemSource } from '../../model/stack';
+import { CardType, Zone } from '../../model/types';
 import type { GameEvent } from '../events';
+import { GameEventType } from '../events';
 import { manaSpentMatchesCost, poolHasAtLeast, totalSpent } from '../mana';
 import { nextStackItemId, sorcerySpeed } from './_shared';
 
@@ -17,12 +20,12 @@ export const validateCastCreature = (
   }
 
   const card = state.cards[action.cardId];
-  if (!card || card.zone !== 'hand' || card.ownerId !== action.playerId) {
+  if (!card || card.zone !== Zone.Hand || card.ownerId !== action.playerId) {
     return err('card not in your hand');
   }
 
   const def = getCardDefinition(card.definitionId);
-  if (!def.types.includes('creature')) {
+  if (!def.types.includes(CardType.Creature)) {
     return err('not a creature');
   }
   if (!def.manaCost) {
@@ -45,21 +48,21 @@ export const validateCastCreature = (
     id: nextStackItemId(state, card.id),
     controllerId: action.playerId,
     cardId: card.id,
-    source: 'spell',
+    source: StackItemSource.Spell,
     effects: [],
     targets: [],
     manaSpent: action.manaSpent,
   };
 
   return ok<GameEvent[]>([
-    { type: 'mana_spent', playerId: action.playerId, spent: action.manaSpent },
+    { type: GameEventType.ManaSpent, playerId: action.playerId, spent: action.manaSpent },
     {
-      type: 'card_entered_zone',
+      type: GameEventType.CardEnteredZone,
       cardId: card.id,
-      from: 'hand',
-      to: 'stack',
+      from: Zone.Hand,
+      to: Zone.Stack,
       causedBy: action.playerId,
     },
-    { type: 'spell_put_on_stack', item },
+    { type: GameEventType.SpellPutOnStack, item },
   ]);
 };
