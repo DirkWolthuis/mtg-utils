@@ -1,6 +1,6 @@
 import { ok } from '@mtg-utils/engine-util';
 import type { GameEvent } from '../../../engine/events';
-import { GameEventType } from '../../../engine/events';
+import { GameEventType } from '../../../model/enums';
 import type { EffectHandler } from '../effect-registry';
 import type { DrawCards } from '../effect-types';
 

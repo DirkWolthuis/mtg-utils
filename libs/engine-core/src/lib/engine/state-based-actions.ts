@@ -1,8 +1,7 @@
 import { getCardDefinition } from '../cards/catalog';
+import { CardType, GameEventType, GameStatus, PlayerLostReason, Zone } from '../model/enums';
 import type { GameState } from '../model/game-state';
-import { CardType, GameStatus, Zone } from '../model/types';
 import type { GameEvent } from './events';
-import { GameEventType, PlayerLostReason } from './events';
 
 export const checkStateBasedActions = (state: GameState): GameEvent[] => {
   if (state.status === GameStatus.Ended) {

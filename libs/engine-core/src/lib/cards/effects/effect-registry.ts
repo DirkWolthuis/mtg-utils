@@ -1,10 +1,10 @@
 import type { Result } from '@mtg-utils/engine-util';
 import { err, ok } from '@mtg-utils/engine-util';
 import type { GameEvent } from '../../engine/events';
+import { EffectType } from '../../model/enums';
 import type { GameState } from '../../model/game-state';
 import type { CardInstanceId, PlayerId } from '../../model/types';
 import type { Effect, EffectTarget } from './effect-types';
-import { EffectType } from './effect-types';
 import { dealDamageToAny } from './handlers/deal-damage';
 import { drawCards } from './handlers/draw-cards';
 import { gainLife } from './handlers/gain-life';

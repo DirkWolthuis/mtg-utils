@@ -2,10 +2,9 @@ import { err, ok, type Result } from '@mtg-utils/engine-util';
 
 import type { PlayLand } from '../../actions/action';
 import { getCardDefinition } from '../../cards/catalog';
+import { CardType, GameEventType, Step, Zone } from '../../model/enums';
 import type { GameState } from '../../model/game-state';
-import { CardType, Step, Zone } from '../../model/types';
 import type { GameEvent } from '../events';
-import { GameEventType } from '../events';
 import { requireActive, requireStep } from './_shared';
 
 export const validatePlayLand = (

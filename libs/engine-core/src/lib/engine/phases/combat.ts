@@ -1,9 +1,15 @@
 import { getCardDefinition } from '../../cards/catalog';
+import {
+  DamagePass,
+  GameEventType,
+  Keyword,
+  LifeChangeReason,
+  TargetKind,
+  Zone,
+} from '../../model/enums';
 import type { GameState } from '../../model/game-state';
 import type { CardInstanceId } from '../../model/types';
-import { DamagePass, Keyword, TargetKind, Zone } from '../../model/types';
 import type { GameEvent } from '../events';
-import { GameEventType, LifeChangeReason } from '../events';
 
 type PowerToughness = {
   power: number;

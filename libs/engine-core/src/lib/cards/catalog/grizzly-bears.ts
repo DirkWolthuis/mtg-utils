@@ -1,4 +1,5 @@
-import { CardType, makeCardDefinitionId } from '../../model/types';
+import { CardType } from '../../model/enums';
+import { makeCardDefinitionId } from '../../model/types';
 import type { CardDefinition } from '../card-definition';
 
 export const grizzlyBears: CardDefinition = {

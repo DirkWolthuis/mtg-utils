@@ -1,7 +1,7 @@
+import { Zone } from '../model/enums';
 import type { GameState } from '../model/game-state';
 import type { StackItem } from '../model/stack';
 import type { CardInstance, CardInstanceId, Player, PlayerId } from '../model/types';
-import { Zone } from '../model/types';
 
 export type OpponentView = {
   id: PlayerId;

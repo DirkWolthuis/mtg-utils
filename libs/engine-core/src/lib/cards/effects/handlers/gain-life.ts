@@ -1,5 +1,5 @@
 import { ok } from '@mtg-utils/engine-util';
-import { GameEventType, LifeChangeReason } from '../../../engine/events';
+import { GameEventType, LifeChangeReason } from '../../../model/enums';
 import type { EffectHandler } from '../effect-registry';
 import type { GainLife } from '../effect-types';
 

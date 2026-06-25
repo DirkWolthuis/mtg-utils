@@ -1,6 +1,7 @@
+import { Step } from '../../model/enums';
 import type { GameState } from '../../model/game-state';
 import type { StackItemId } from '../../model/types';
-import { Step, makeStackItemId } from '../../model/types';
+import { makeStackItemId } from '../../model/types';
 
 /**
  * Deterministic per-game stack item id. Safe (no collisions) because the stack's

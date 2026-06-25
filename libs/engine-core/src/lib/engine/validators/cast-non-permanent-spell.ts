@@ -2,12 +2,10 @@ import { err, ok, type Result } from '@mtg-utils/engine-util';
 
 import type { CastInstant, CastSorcery } from '../../actions/action';
 import { getCardDefinition } from '../../cards/catalog';
-import { EffectType } from '../../cards/effects/effect-types';
+import { EffectType, GameEventType, StackItemSource, Zone, type CardType } from '../../model/enums';
 import type { GameState } from '../../model/game-state';
 import type { StackItem } from '../../model/stack';
-import { StackItemSource, Zone, type CardType } from '../../model/types';
 import type { GameEvent } from '../events';
-import { GameEventType } from '../events';
 import { manaSpentMatchesCost, poolHasAtLeast } from '../mana';
 import { instantSpeed, nextStackItemId, sorcerySpeed } from './_shared';
 

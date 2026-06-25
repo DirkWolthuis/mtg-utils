@@ -1,11 +1,5 @@
-import type {
-  CardDefinitionId,
-  CardType,
-  Keyword,
-  ManaColor,
-  ManaCost,
-  SuperType,
-} from '../model/types';
+import type { CardType, Keyword, SuperType } from '../model/enums';
+import type { CardDefinitionId, ManaColor, ManaCost } from '../model/types';
 import type { Effect } from './effects/effect-types';
 
 export type CardDefinition = {

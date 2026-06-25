@@ -1,9 +1,9 @@
 import { err, ok, type Result } from '@mtg-utils/engine-util';
 
 import type { PassPriority } from '../../actions/action';
+import { GameEventType } from '../../model/enums';
 import { otherPlayer, type GameState } from '../../model/game-state';
 import type { GameEvent } from '../events';
-import { GameEventType } from '../events';
 
 export const validatePassPriority = (
   state: GameState,

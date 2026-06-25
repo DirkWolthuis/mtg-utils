@@ -1,8 +1,8 @@
 import type { Result } from '@mtg-utils/engine-util';
 
 import type { CastInstant } from '../../actions/action';
+import { CardType } from '../../model/enums';
 import type { GameState } from '../../model/game-state';
-import { CardType } from '../../model/types';
 import type { GameEvent } from '../events';
 import { castNonPermanentSpell } from './cast-non-permanent-spell';
 

@@ -1,7 +1,6 @@
 import { err, ok } from '@mtg-utils/engine-util';
 import type { GameEvent } from '../../../engine/events';
-import { GameEventType, LifeChangeReason } from '../../../engine/events';
-import { TargetKind, Zone } from '../../../model/types';
+import { GameEventType, LifeChangeReason, TargetKind, Zone } from '../../../model/enums';
 import type { EffectContext, EffectHandler } from '../effect-registry';
 import type { DealDamageToAny } from '../effect-types';
 

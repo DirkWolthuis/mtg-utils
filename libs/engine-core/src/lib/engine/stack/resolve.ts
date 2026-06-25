@@ -1,11 +1,9 @@
 import { getCardDefinition } from '../../cards/catalog';
 import { runEffect } from '../../cards/effects/effect-registry';
-import { EffectType } from '../../cards/effects/effect-types';
+import { CardType, EffectType, GameEventType, Zone } from '../../model/enums';
 import type { GameState } from '../../model/game-state';
 import type { StackItem } from '../../model/stack';
-import { CardType, Zone } from '../../model/types';
 import type { GameEvent } from '../events';
-import { GameEventType } from '../events';
 
 /**
  * Compute the events that resolving a stack item produces. Targets are

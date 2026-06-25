@@ -1,10 +1,9 @@
+import { GameEventType, PlayerLostReason, Step } from '../../model/enums';
 import type { GameState } from '../../model/game-state';
 import { otherPlayer } from '../../model/game-state';
 import type { CardInstanceId, PlayerId } from '../../model/types';
-import { Step } from '../../model/types';
 import type { EventBus } from '../event-bus';
 import type { GameEvent } from '../events';
-import { GameEventType, PlayerLostReason } from '../events';
 import { computeCombatDamageEvents } from './combat';
 
 const intrinsicForStep = (state: GameState, step: Step): GameEvent[] => {

@@ -2,10 +2,9 @@ import { err, ok, type Result } from '@mtg-utils/engine-util';
 
 import type { TapLandForMana } from '../../actions/action';
 import { getCardDefinition } from '../../cards/catalog';
+import { CardType, GameEventType, Zone } from '../../model/enums';
 import type { GameState } from '../../model/game-state';
-import { CardType, Zone } from '../../model/types';
 import type { GameEvent } from '../events';
-import { GameEventType } from '../events';
 
 export const validateTapLandForMana = (
   state: GameState,

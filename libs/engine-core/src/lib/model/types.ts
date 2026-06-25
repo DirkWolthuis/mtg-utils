@@ -1,9 +1,5 @@
 import { CardType, Phase, Step, type Zone } from './enums';
 
-// Enums live in ./enums; re-exported here so existing `from '../model/types'`
-// imports keep resolving.
-export * from './enums';
-
 export type PlayerId = string & { readonly __brand: 'PlayerId' };
 export type CardInstanceId = string & { readonly __brand: 'CardInstanceId' };
 export type CardDefinitionId = string & { readonly __brand: 'CardDefinitionId' };

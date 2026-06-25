@@ -1,17 +1,16 @@
-import type { GameState } from '../model/game-state';
-import { otherPlayer } from '../model/game-state';
-import type { CardInstance, CardInstanceId, Player, PlayerId } from '../model/types';
 import {
+  CombatDeclaration,
+  GameEventType,
   GameStatus,
-  STEP_ORDER,
   Step,
   TargetKind,
   Zone,
-  emptyCombat,
-  emptyManaPool,
-} from '../model/types';
+} from '../model/enums';
+import type { GameState } from '../model/game-state';
+import { otherPlayer } from '../model/game-state';
+import type { CardInstance, CardInstanceId, Player, PlayerId } from '../model/types';
+import { STEP_ORDER, emptyCombat, emptyManaPool } from '../model/types';
 import type { GameEvent } from './events';
-import { CombatDeclaration, GameEventType } from './events';
 
 const updateCard = (
   state: GameState,

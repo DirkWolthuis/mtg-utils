@@ -1,6 +1,6 @@
-import { CardType, makeCardDefinitionId } from '../../model/types';
+import { CardType, EffectType } from '../../model/enums';
+import { makeCardDefinitionId } from '../../model/types';
 import type { CardDefinition } from '../card-definition';
-import { EffectType } from '../effects/effect-types';
 
 export const healingSalve: CardDefinition = {
   id: makeCardDefinitionId('healing-salve'),

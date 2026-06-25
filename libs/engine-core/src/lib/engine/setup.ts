@@ -1,4 +1,5 @@
 import { getCardDefinition } from '../cards/catalog';
+import { GameStatus, Step, Zone } from '../model/enums';
 import type { GameState } from '../model/game-state';
 import type {
   CardDefinitionId,
@@ -7,14 +8,7 @@ import type {
   GameId,
   PlayerId,
 } from '../model/types';
-import {
-  GameStatus,
-  Step,
-  Zone,
-  emptyCombat,
-  emptyManaPool,
-  makeCardInstanceId,
-} from '../model/types';
+import { emptyCombat, emptyManaPool, makeCardInstanceId } from '../model/types';
 import { nextInt } from './rng';
 import { shuffle } from './shuffle';
 

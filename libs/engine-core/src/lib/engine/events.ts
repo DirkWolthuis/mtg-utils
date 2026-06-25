@@ -1,28 +1,15 @@
-import type { StackItem } from '../model/stack';
 import {
-  CombatDeclaration,
-  GameEventType,
-  LifeChangeReason,
-  PlayerLostReason,
-  PriorityResetReason,
-  type CardInstanceId,
-  type ManaColor,
-  type PlayerId,
-  type StackItemId,
+  type CombatDeclaration,
+  type GameEventType,
+  type LifeChangeReason,
+  type PlayerLostReason,
+  type PriorityResetReason,
   type Step,
   type TargetKind,
   type Zone,
-} from '../model/types';
-
-// Event enums live in the model (`model/enums.ts`); re-exported so existing
-// `from '../events'` imports keep resolving.
-export {
-  CombatDeclaration,
-  GameEventType,
-  LifeChangeReason,
-  PlayerLostReason,
-  PriorityResetReason,
-};
+} from '../model/enums';
+import type { StackItem } from '../model/stack';
+import type { CardInstanceId, ManaColor, PlayerId, StackItemId } from '../model/types';
 
 export type CardEnteredZone = {
   type: GameEventType.CardEnteredZone;

@@ -1,8 +1,8 @@
+import { GameEventType, PriorityResetReason } from '../../model/enums';
 import type { GameState } from '../../model/game-state';
 import { STEP_ORDER } from '../../model/types';
 import type { EventBus } from '../event-bus';
 import type { GameEvent } from '../events';
-import { GameEventType, PriorityResetReason } from '../events';
 import { resolveStackItem } from './resolve';
 
 const PASSES_TO_RESOLVE = 2;

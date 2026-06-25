@@ -1,4 +1,5 @@
-import { CardType, SuperType, makeCardDefinitionId } from '../../model/types';
+import { CardType, SuperType } from '../../model/enums';
+import { makeCardDefinitionId } from '../../model/types';
 import type { CardDefinition } from '../card-definition';
 
 export const forest: CardDefinition = {

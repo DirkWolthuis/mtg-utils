@@ -2,10 +2,9 @@ import { err, ok, type Result } from '@mtg-utils/engine-util';
 
 import type { DeclareAttackers } from '../../actions/action';
 import { getCardDefinition } from '../../cards/catalog';
+import { CardType, CombatDeclaration, GameEventType, Keyword, Step, Zone } from '../../model/enums';
 import { otherPlayer, type GameState } from '../../model/game-state';
-import { CardType, Keyword, Step, Zone } from '../../model/types';
 import type { GameEvent } from '../events';
-import { CombatDeclaration, GameEventType } from '../events';
 import { requireActive } from './_shared';
 
 export const validateDeclareAttackers = (

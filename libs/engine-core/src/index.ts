@@ -19,6 +19,7 @@ export * from './lib/engine/stack/priority';
 export * from './lib/engine/stack/resolve';
 export * from './lib/engine/state-based-actions';
 export * from './lib/engine/validate';
+export * from './lib/model/enums';
 export * from './lib/model/game-state';
 export * from './lib/model/stack';
 export * from './lib/model/types';

@@ -1,11 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { Action } from '../actions/action';
 import { ActionType } from '../actions/action';
+import { Step, TargetKind, Zone } from '../model/enums';
 import type { GameState } from '../model/game-state';
 import {
-  Step,
-  TargetKind,
-  Zone,
   makeCardDefinitionId,
   makeGameId,
   makePlayerId,
