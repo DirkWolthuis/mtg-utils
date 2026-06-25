@@ -1,63 +1,28 @@
 import type { StackItem } from '../model/stack';
-import type { CardInstanceId, ManaColor, PlayerId, StackItemId } from '../model/types';
-import { type Step, type TargetKind, type Zone } from '../model/types';
+import {
+  CombatDeclaration,
+  GameEventType,
+  LifeChangeReason,
+  PlayerLostReason,
+  PriorityResetReason,
+  type CardInstanceId,
+  type ManaColor,
+  type PlayerId,
+  type StackItemId,
+  type Step,
+  type TargetKind,
+  type Zone,
+} from '../model/types';
 
-export enum GameEventType {
-  CardEnteredZone = 'card_entered_zone',
-  PermanentTapped = 'permanent_tapped',
-  PermanentUntapped = 'permanent_untapped',
-  ManaProduced = 'mana_produced',
-  ManaSpent = 'mana_spent',
-  ManaPoolEmptied = 'mana_pool_emptied',
-  DamageDealt = 'damage_dealt',
-  LifeChanged = 'life_changed',
-  CardDrawn = 'card_drawn',
-  DrawAttemptedEmpty = 'draw_attempted_empty',
-  LandPlayed = 'land_played',
-  SpellPutOnStack = 'spell_put_on_stack',
-  StackItemResolved = 'stack_item_resolved',
-  PriorityPassed = 'priority_passed',
-  PriorityReset = 'priority_reset',
-  CreatureDied = 'creature_died',
-  AttackerDeclared = 'attacker_declared',
-  BlockerDeclared = 'blocker_declared',
-  CombatDeclared = 'combat_declared',
-  CombatDamageMarked = 'combat_damage_marked',
-  DamageClearedAtCleanup = 'damage_cleared_at_cleanup',
-  SummoningSicknessCleared = 'summoning_sickness_cleared',
-  StepAdvanced = 'step_advanced',
-  TurnStarted = 'turn_started',
-  LandsPlayedReset = 'lands_played_reset',
-  PlayerLost = 'player_lost',
-  GameEnded = 'game_ended',
-}
-
-/** Why a `life_changed` event was emitted. */
-export enum LifeChangeReason {
-  Damage = 'damage',
-  Lifelink = 'lifelink',
-  Effect = 'effect',
-}
-
-/** Why a `priority_reset` was emitted. */
-export enum PriorityResetReason {
-  StackChanged = 'stack_changed',
-  StepStarted = 'step_started',
-  CombatDeclared = 'combat_declared',
-}
-
-/** Which combat turn-based declaration a `combat_declared` event marks. */
-export enum CombatDeclaration {
-  Attackers = 'attackers',
-  Blockers = 'blockers',
-}
-
-/** Why a `player_lost` event was emitted. */
-export enum PlayerLostReason {
-  Life = 'life',
-  DeckOut = 'deck_out',
-  Concede = 'concede',
-}
+// Event enums live in the model (`model/enums.ts`); re-exported so existing
+// `from '../events'` imports keep resolving.
+export {
+  CombatDeclaration,
+  GameEventType,
+  LifeChangeReason,
+  PlayerLostReason,
+  PriorityResetReason,
+};
 
 export type CardEnteredZone = {
   type: GameEventType.CardEnteredZone;

@@ -1,3 +1,9 @@
+import { CardType, Phase, Step, type Zone } from './enums';
+
+// Enums live in ./enums; re-exported here so existing `from '../model/types'`
+// imports keep resolving.
+export * from './enums';
+
 export type PlayerId = string & { readonly __brand: 'PlayerId' };
 export type CardInstanceId = string & { readonly __brand: 'CardInstanceId' };
 export type CardDefinitionId = string & { readonly __brand: 'CardDefinitionId' };
@@ -43,25 +49,6 @@ export const cmcOf = (cost: ManaCost | null): number => {
   );
 };
 
-export enum Zone {
-  Library = 'library',
-  Hand = 'hand',
-  Battlefield = 'battlefield',
-  Graveyard = 'graveyard',
-  Exile = 'exile',
-  Stack = 'stack',
-}
-
-export enum CardType {
-  Land = 'land',
-  Creature = 'creature',
-  Instant = 'instant',
-  Sorcery = 'sorcery',
-  Enchantment = 'enchantment',
-  Artifact = 'artifact',
-  Planeswalker = 'planeswalker',
-}
-
 export const isSpellType = (type: CardType): boolean =>
   type === CardType.Creature ||
   type === CardType.Instant ||
@@ -69,28 +56,6 @@ export const isSpellType = (type: CardType): boolean =>
   type === CardType.Enchantment ||
   type === CardType.Artifact ||
   type === CardType.Planeswalker;
-
-export enum SuperType {
-  Basic = 'basic',
-  Legendary = 'legendary',
-  Snow = 'snow',
-}
-
-export enum Keyword {
-  Haste = 'haste',
-  Flying = 'flying',
-  Trample = 'trample',
-  Vigilance = 'vigilance',
-  Lifelink = 'lifelink',
-  Deathtouch = 'deathtouch',
-  FirstStrike = 'first_strike',
-}
-
-/** Shared target discriminant for damage events and targeted effects. */
-export enum TargetKind {
-  Player = 'player',
-  Permanent = 'permanent',
-}
 
 export type CardInstance = {
   id: CardInstanceId;
@@ -116,29 +81,6 @@ export type Player = {
   exile: CardInstanceId[];
   landsPlayedThisTurn: number;
 };
-
-export enum Phase {
-  Beginning = 'beginning',
-  Main1 = 'main1',
-  Combat = 'combat',
-  Main2 = 'main2',
-  Ending = 'ending',
-}
-
-export enum Step {
-  Untap = 'untap',
-  Upkeep = 'upkeep',
-  Draw = 'draw',
-  Main1 = 'main1',
-  BeginCombat = 'begin_combat',
-  DeclareAttackers = 'declare_attackers',
-  DeclareBlockers = 'declare_blockers',
-  CombatDamage = 'combat_damage',
-  EndCombat = 'end_combat',
-  Main2 = 'main2',
-  End = 'end',
-  Cleanup = 'cleanup',
-}
 
 export const STEP_ORDER: Step[] = [
   Step.Untap,
@@ -200,9 +142,3 @@ export const emptyCombat = (): CombatState => ({
   attackersDeclared: false,
   blockersDeclared: false,
 });
-
-export enum GameStatus {
-  Waiting = 'waiting',
-  Active = 'active',
-  Ended = 'ended',
-}

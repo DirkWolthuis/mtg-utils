@@ -1,11 +1,8 @@
-import type { CardInstanceId, PlayerId } from '../../model/types';
-import { type TargetKind } from '../../model/types';
+import { EffectType, type CardInstanceId, type PlayerId, type TargetKind } from '../../model/types';
 
-export enum EffectType {
-  DealDamageToAny = 'deal_damage_to_any',
-  DrawCards = 'draw_cards',
-  GainLife = 'gain_life',
-}
+// EffectType lives in the model (`model/enums.ts`); re-exported so existing
+// `from './effect-types'` imports keep resolving.
+export { EffectType };
 
 export type EffectTarget =
   | { kind: TargetKind.Player; playerId: PlayerId }

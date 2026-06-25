@@ -1,15 +1,9 @@
 import { getCardDefinition } from '../../cards/catalog';
 import type { GameState } from '../../model/game-state';
 import type { CardInstanceId } from '../../model/types';
-import { Keyword, TargetKind, Zone } from '../../model/types';
+import { DamagePass, Keyword, TargetKind, Zone } from '../../model/types';
 import type { GameEvent } from '../events';
 import { GameEventType, LifeChangeReason } from '../events';
-
-/** Which combat-damage sub-step is being computed. */
-enum DamagePass {
-  FirstStrike = 'first_strike',
-  Regular = 'regular',
-}
 
 type PowerToughness = {
   power: number;

@@ -1,15 +1,6 @@
 import type { Effect, EffectTarget } from '../cards/effects/effect-types';
+import type { StackItemSource } from './enums';
 import type { CardInstanceId, ManaColor, PlayerId, StackItemId } from './types';
-
-/**
- * Resolution origin of a stack item: `Spell` for cast cards (move card to
- * graveyard on resolution), `Ability` for triggered/activated (no zone move).
- * v0 sets `Spell` only.
- */
-export enum StackItemSource {
-  Spell = 'spell',
-  Ability = 'ability',
-}
 
 /**
  * A spell or ability on the stack. The `cardId` points at the card instance
