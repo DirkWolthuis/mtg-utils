@@ -229,8 +229,12 @@ export class Game {
     if (!v) {
       return;
     }
-    this.skipUntilTurn.set(v.turn);
-    this.lastAutoPassedView = null;
+    if (this.skipUntilTurn() !== null) {
+      this.skipUntilTurn.set(null);
+    } else {
+      this.skipUntilTurn.set(v.turn);
+      this.lastAutoPassedView = null;
+    }
   }
 
   protected playCard(id: CardInstanceId): void {
