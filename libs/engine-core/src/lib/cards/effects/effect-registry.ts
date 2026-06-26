@@ -6,6 +6,7 @@ import type { GameState } from '../../model/game-state';
 import type { CardInstanceId, PlayerId } from '../../model/types';
 import type { Effect, EffectTarget } from './effect-types';
 import { dealDamageToAny } from './handlers/deal-damage';
+import { destroyPermanent } from './handlers/destroy-permanent';
 import { drawCards } from './handlers/draw-cards';
 import { gainLife } from './handlers/gain-life';
 
@@ -27,6 +28,7 @@ const registry = new Map<EffectType, AnyHandler>([
   [EffectType.DealDamageToAny, dealDamageToAny as AnyHandler],
   [EffectType.DrawCards, drawCards as AnyHandler],
   [EffectType.GainLife, gainLife as AnyHandler],
+  [EffectType.DestroyPermanent, destroyPermanent as AnyHandler],
 ]);
 
 export const runEffect = (effect: Effect, ctx: EffectContext): Result<GameEvent[], string> => {

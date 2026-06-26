@@ -5,6 +5,8 @@ import type { GameState } from '../../model/game-state';
 import type { StackItem } from '../../model/stack';
 import type { GameEvent } from '../events';
 
+const TARGETED_EFFECT_TYPES = new Set([EffectType.DealDamageToAny, EffectType.DestroyPermanent]);
+
 /**
  * Compute the events that resolving a stack item produces. Targets are
  * re-checked against current state: permanents must still be on the
@@ -42,8 +44,7 @@ export const resolveStackItem = (state: GameState, item: StackItem): GameEvent[]
     // Instant / sorcery: run effect descriptors against current state, then graveyard.
     let targetIdx = 0;
     for (const effect of item.effects) {
-      const target =
-        effect.type === EffectType.DealDamageToAny ? item.targets[targetIdx++] : undefined;
+      const target = TARGETED_EFFECT_TYPES.has(effect.type) ? item.targets[targetIdx++] : undefined;
       const ctx = {
         state,
         casterId: item.controllerId,

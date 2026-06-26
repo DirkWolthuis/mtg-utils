@@ -53,7 +53,8 @@ export const castNonPermanentSpell = (
   }
 
   const effects = def.effects ?? [];
-  const targetCount = effects.filter((e) => e.type === EffectType.DealDamageToAny).length;
+  const targetedEffectTypes = new Set([EffectType.DealDamageToAny, EffectType.DestroyPermanent]);
+  const targetCount = effects.filter((e) => targetedEffectTypes.has(e.type)).length;
   const targets = action.targets ?? [];
   if (targets.length < targetCount) {
     return err(`spell needs ${targetCount} target(s)`);

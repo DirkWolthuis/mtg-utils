@@ -267,9 +267,23 @@ export class Game {
 
     if (def.types.includes(CardType.Sorcery) || def.types.includes(CardType.Instant)) {
       const opponentId = v.opponent.id as PlayerId;
+      const opponentCreatures = v.battlefield.filter(
+        (cid) => v.cards[cid]?.controllerId !== v.forPlayer,
+      );
       const targets = (def.effects ?? [])
-        .filter((e) => e.type === EffectType.DealDamageToAny)
-        .map(() => ({ kind: TargetKind.Player as const, playerId: opponentId }));
+        .map((e) => {
+          if (e.type === EffectType.DealDamageToAny) {
+            return { kind: TargetKind.Player as const, playerId: opponentId };
+          }
+          if (e.type === EffectType.DestroyPermanent) {
+            const targetId = opponentCreatures[0];
+            return targetId
+              ? { kind: TargetKind.Permanent as const, cardId: targetId }
+              : { kind: TargetKind.Player as const, playerId: opponentId };
+          }
+          return null;
+        })
+        .filter((t): t is NonNullable<typeof t> => t !== null);
       const type = def.types.includes(CardType.Instant)
         ? ActionType.CastInstant
         : ActionType.CastSorcery;

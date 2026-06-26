@@ -20,4 +20,8 @@ export type GainLife = {
   amount: number;
 };
 
-export type Effect = DealDamageToAny | DrawCards | GainLife;
+export type DestroyPermanent = {
+  type: EffectType.DestroyPermanent;
+};
+
+export type Effect = DealDamageToAny | DrawCards | GainLife | DestroyPermanent;

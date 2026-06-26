@@ -97,6 +97,7 @@ export enum EffectType {
   DealDamageToAny = 'deal_damage_to_any',
   DrawCards = 'draw_cards',
   GainLife = 'gain_life',
+  DestroyPermanent = 'destroy_permanent',
 }
 
 // --- Events -----------------------------------------------------------------
