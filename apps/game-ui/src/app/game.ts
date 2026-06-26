@@ -225,6 +225,10 @@ export class Game {
   }
 
   protected skipTurn(): void {
+    if (this.isSkipping()) {
+      this.skipUntilTurn.set(null);
+      return;
+    }
     const v = this.ws.view();
     if (!v) {
       return;
