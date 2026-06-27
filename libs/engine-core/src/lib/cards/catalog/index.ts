@@ -12,11 +12,15 @@ import { lightningBolt } from './lightning-bolt';
 import { lightningStrike } from './lightning-strike';
 import { llanowarElves } from './llanowar-elves';
 import { mountain } from './mountain';
+import { plains } from './plains';
 import { savannahLions } from './savannah-lions';
+import { swamp } from './swamp';
 
 const list: CardDefinition[] = [
   forest,
   mountain,
+  plains,
+  swamp,
   grizzlyBears,
   hillGiant,
   lightningStrike,
@@ -53,5 +57,7 @@ export {
   lightningStrike,
   llanowarElves,
   mountain,
+  plains,
   savannahLions,
+  swamp,
 };
