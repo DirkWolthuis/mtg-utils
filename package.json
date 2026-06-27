@@ -8,6 +8,7 @@
     "serve:game-server": "nx serve engine-server",
     "serve:trader": "nx serve mtg-trader",
     "serve:game-ui": "nx serve game-ui",
+    "serve:cube-network": "nx serve cube-network",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "nx run-many -t lint",
@@ -22,7 +23,9 @@
     "@angular/material": "^21.2.10",
     "@angular/platform-browser": "~21.2.0",
     "@angular/router": "~21.2.0",
-    "rxjs": "~7.8.0"
+    "rxjs": "~7.8.0",
+    "vis-data": "^8.0.4",
+    "vis-network": "^10.1.0"
   },
   "devDependencies": {
     "@angular-devkit/core": "~21.2.0",

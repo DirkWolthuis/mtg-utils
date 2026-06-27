@@ -1,0 +1,105 @@
+<div class="app-shell">
+  <!-- TOOLBAR -->
+  <header class="toolbar">
+    <div class="toolbar-brand">
+      <span class="brand-icon">⬡</span>
+      <span class="brand-name">Cube Network</span>
+      @if (state.cubeName()) {
+      <span class="cube-tag">{{ state.cubeName() }}</span>
+      }
+    </div>
+
+    <div class="toolbar-import">
+      <cn-cube-import (imported)="onCubeImported($event)" />
+    </div>
+
+    <div class="toolbar-actions">
+      @if (state.hasData()) {
+      <button
+        class="connect-btn"
+        [class.active]="connectMode()"
+        (click)="toggleConnectMode()"
+        type="button"
+      >
+        @if (connectMode()) { ✕ Exit connect } @else { ⟷ Connect }
+      </button>
+      <button
+        class="panel-btn"
+        [class.active]="panelOpen()"
+        (click)="panelOpen.set(!panelOpen())"
+        type="button"
+      >
+        Relationships ({{ state.relationships().length }})
+      </button>
+      }
+    </div>
+  </header>
+
+  <!-- CONNECT MODE STATUS BAR -->
+  @if (phaseHint()) {
+  <div class="status-bar">
+    <span>{{ phaseHint() }}</span>
+  </div>
+  }
+
+  <!-- NAMING OVERLAY -->
+  @if (namingPhase()) {
+  <div class="naming-overlay">
+    <div class="naming-card">
+      <p class="naming-prompt">
+        <strong>{{ namingPhase()!.sourceName }}</strong>
+        <span class="arrow">→</span>
+        <strong>{{ namingPhase()!.targetName }}</strong>
+      </p>
+      <p class="naming-label">Relationship name</p>
+      <input
+        class="naming-input"
+        [ngModel]="pendingLabel()"
+        (ngModelChange)="pendingLabel.set($event)"
+        placeholder="e.g. synergizes with, combos with…"
+        (keydown.enter)="confirmRelationship()"
+        (keydown.escape)="cancelNaming()"
+       
+      />
+      <div class="naming-actions">
+        <button class="btn-secondary" (click)="cancelNaming()" type="button">Cancel</button>
+        <button
+          class="btn-primary"
+          (click)="confirmRelationship()"
+          [disabled]="!pendingLabel().trim()"
+          type="button"
+        >
+          Create relationship
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- MAIN AREA -->
+  <div class="main-area">
+    @if (!state.hasData()) {
+    <div class="empty-state">
+      <div class="empty-icon">⬡</div>
+      <h2>Import a cube to get started</h2>
+      <p>
+        Enter a Cube Cobra cube ID in the toolbar, or paste a card list directly.
+        <br />
+        Cards will appear as a network of nodes you can explore and connect.
+      </p>
+    </div>
+    } @else {
+    <cn-network-graph
+      [connectMode]="connectMode()"
+      [sourceNodeId]="sourceNodeId()"
+      (nodeClick)="onNodeClicked($event)"
+      class="graph"
+    />
+    }
+
+    <!-- SIDE PANEL -->
+    <aside class="side-panel" [class.open]="panelOpen()">
+      <cn-relationship-panel />
+    </aside>
+  </div>
+</div>

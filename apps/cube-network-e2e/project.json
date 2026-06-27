@@ -1,0 +1,9 @@
+{
+  "name": "cube-network-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/cube-network-e2e/src",
+  "implicitDependencies": ["cube-network"],
+  "// targets": "to see all targets run: nx show project cube-network-e2e --web",
+  "targets": {}
+}

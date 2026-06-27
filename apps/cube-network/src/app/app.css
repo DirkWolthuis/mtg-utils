@@ -1,0 +1,263 @@
+/* Layout shell */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+  height: 56px;
+  background: #1a1a2e;
+  color: #fff;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.toolbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.brand-icon {
+  font-size: 22px;
+  color: #c9a227;
+  line-height: 1;
+}
+
+.brand-name {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.cube-tag {
+  background: rgba(201, 162, 39, 0.25);
+  color: #c9a227;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(201, 162, 39, 0.5);
+  white-space: nowrap;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toolbar-import {
+  flex: 1;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.connect-btn,
+.panel-btn {
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+  border: 1px solid #555;
+  background: transparent;
+  color: #ccc;
+  white-space: nowrap;
+}
+
+.connect-btn:hover,
+.panel-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.connect-btn.active {
+  background: #c9a227;
+  border-color: #c9a227;
+  color: #111;
+}
+
+.panel-btn.active {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border-color: #888;
+}
+
+/* Status bar */
+.status-bar {
+  background: #c9a227;
+  color: #111;
+  text-align: center;
+  padding: 5px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* Naming overlay */
+.naming-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.naming-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 28px 32px;
+  min-width: 360px;
+  max-width: 500px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.naming-prompt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 15px;
+  margin: 0 0 16px;
+  color: #222;
+}
+
+.naming-prompt .arrow {
+  color: #c9a227;
+  font-size: 18px;
+}
+
+.naming-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #777;
+  margin: 0 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.naming-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #222;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.naming-input:focus {
+  border-color: #c9a227;
+}
+
+.naming-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 8px 18px;
+  border-radius: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  border: none;
+}
+
+.btn-primary {
+  background: #1a1a2e;
+  color: #fff;
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #eee;
+  color: #444;
+}
+
+/* Main area */
+.main-area {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
+.graph {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Empty state */
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #777;
+  text-align: center;
+  padding: 32px;
+}
+
+.empty-icon {
+  font-size: 64px;
+  color: #ccc;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+
+.empty-state h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #444;
+  margin: 0 0 12px;
+}
+
+.empty-state p {
+  font-size: 14px;
+  line-height: 1.7;
+  max-width: 380px;
+  margin: 0;
+}
+
+/* Side panel */
+.side-panel {
+  width: 0;
+  overflow: hidden;
+  background: #fff;
+  border-left: 1px solid #e0e0e0;
+  transition: width 0.2s ease;
+  flex-shrink: 0;
+}
+
+.side-panel.open {
+  width: 280px;
+}
