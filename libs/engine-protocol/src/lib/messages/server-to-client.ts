@@ -45,6 +45,8 @@ export type JoinAck = {
   playerId: PlayerId;
   /** Both players present and game has started */
   ready: boolean;
+  /** Short git commit hash of the running server build */
+  serverVersion: string;
 };
 
 export type ServerMessage =

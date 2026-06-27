@@ -11,11 +11,13 @@ import { createSession } from './session';
 
 export type StartOptions = {
   port: number;
+  version?: string;
 };
 
 export const startWebSocketServer = (opts: StartOptions): WebSocketServer => {
   const wss = new WebSocketServer({ port: opts.port });
   const rooms = new RoomRegistry();
+  const serverVersion = opts.version ?? 'dev';
 
   wss.on('connection', (socket: WebSocket) => {
     const session = createSession(socket);
@@ -64,6 +66,7 @@ export const startWebSocketServer = (opts: StartOptions): WebSocketServer => {
             gameId,
             playerId,
             ready: result.ready,
+            serverVersion,
           });
           if (result.ready) {
             room.sendStateSync(playerId);

@@ -22,7 +22,9 @@
 } @else if (ws.connectionStatus() === ConnectionStatus.Connecting) {
 <p>Connecting…</p>
 } @else if (ws.connectionStatus() === ConnectionStatus.Waiting) {
-<p>Waiting for opponent…</p>
+<p>
+  Waiting for opponent… <small style="color: #888">server: {{ ws.serverVersion() ?? '…' }}</small>
+</p>
 <button (click)="ws.disconnect()">Disconnect</button>
 } @else if (ws.view(); as v) {
 <!-- Status bar -->
@@ -31,7 +33,8 @@
   v.forPlayer ? 'YOU' : v.opponent.name }} @if (hasPriority()) { |
   <span class="has-priority">YOU HAVE PRIORITY</span>
   } @else if (v.priorityPlayer) { | Priority: {{ v.priorityPlayer === v.opponent.id ?
-  v.opponent.name : v.priorityPlayer }} } @else { | No priority }
+  v.opponent.name : v.priorityPlayer }} } @else { | No priority } |
+  <small style="color: #888">server: {{ ws.serverVersion() ?? '?' }}</small>
 </div>
 
 <!-- Life totals -->

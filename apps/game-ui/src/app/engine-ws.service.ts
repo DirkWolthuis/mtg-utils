@@ -25,6 +25,7 @@ export class EngineWsService {
   readonly connectionStatus = signal<ConnectionStatus>(ConnectionStatus.Disconnected);
   readonly lastRejection = signal<string | null>(null);
   readonly log = signal<string[]>([]);
+  readonly serverVersion = signal<string | null>(null);
 
   playerId = '';
   gameId = '';
@@ -45,6 +46,7 @@ export class EngineWsService {
     this.log.set([]);
     this.view.set(null);
     this.lastRejection.set(null);
+    this.serverVersion.set(null);
 
     const ws = new WebSocket(url);
     this.ws = ws;
@@ -96,7 +98,8 @@ export class EngineWsService {
   private handleMessage(msg: ServerMessage): void {
     switch (msg.type) {
       case ServerMessageType.JoinAck:
-        this.addLog(`← join_ack ready=${msg.ready}`);
+        this.serverVersion.set(msg.serverVersion);
+        this.addLog(`← join_ack ready=${msg.ready} version=${msg.serverVersion}`);
         if (msg.ready) {
           this.connectionStatus.set(ConnectionStatus.Active);
         }
