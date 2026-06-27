@@ -15,7 +15,7 @@
     "build": {
       "executor": "@nx/esbuild:esbuild",
       "dependsOn": ["gen-hash"],
-      "inputs": ["default", {"fileset": "{projectRoot}/src/build-hash.ts"}],
+      "inputs": ["default", { "fileset": "{projectRoot}/src/build-hash.ts" }],
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
