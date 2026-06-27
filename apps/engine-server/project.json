@@ -5,8 +5,15 @@
   "projectType": "application",
   "tags": [],
   "targets": {
+    "gen-hash": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node apps/engine-server/gen-build-hash.mjs"
+      }
+    },
     "build": {
       "executor": "@nx/esbuild:esbuild",
+      "dependsOn": ["gen-hash"],
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
