@@ -1,19 +1,27 @@
 // Generates src/build-hash.ts before esbuild bundles the server.
 // Run via the "gen-hash" Nx target; never edit the output file by hand.
 import { execSync } from 'child_process';
-import { writeFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
 const dir = dirname(fileURLToPath(import.meta.url));
+const root = join(dir, '../..');
 
 let hash = 'dev';
+
+// CI writes .commit-hash before railway up (git is not available inside Docker build)
 try {
-  hash = execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] })
-    .toString()
-    .trim();
+  hash = readFileSync(join(root, '.commit-hash'), 'utf-8').trim();
 } catch {
-  // git not available
+  // fall back to live git
+  try {
+    hash = execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] })
+      .toString()
+      .trim();
+  } catch {
+    // git not available either — keep 'dev'
+  }
 }
 
 writeFileSync(

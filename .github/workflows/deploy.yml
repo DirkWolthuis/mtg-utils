@@ -43,6 +43,9 @@ jobs:
         env:
           RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
+      - name: Write commit hash for build
+        run: git rev-parse --short HEAD > .commit-hash
+
       - name: Deploy to Railway (production)
         if: github.ref == 'refs/heads/main'
         run: railway up --service game-server --environment production
