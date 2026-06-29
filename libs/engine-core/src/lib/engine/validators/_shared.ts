@@ -1,3 +1,4 @@
+import { Step } from '../../model/enums';
 import type { GameState } from '../../model/game-state';
 import type { StackItemId } from '../../model/types';
 import { makeStackItemId } from '../../model/types';
@@ -31,7 +32,7 @@ export const requireActive = (
 export const sorcerySpeed = (state: GameState, playerId: GameState['activePlayer']): boolean =>
   state.activePlayer === playerId &&
   state.priorityPlayer === playerId &&
-  (state.step === 'main1' || state.step === 'main2') &&
+  (state.step === Step.Main1 || state.step === Step.Main2) &&
   state.stack.length === 0;
 
 /** Instant speed: caster has priority. That's it. */

@@ -2,6 +2,7 @@ import { err, ok, type Result } from '@mtg-utils/engine-util';
 
 import type { PlayLand } from '../../actions/action';
 import { getCardDefinition } from '../../cards/catalog';
+import { CardType, GameEventType, Step, Zone } from '../../model/enums';
 import type { GameState } from '../../model/game-state';
 import type { GameEvent } from '../events';
 import { requireActive, requireStep } from './_shared';
@@ -10,7 +11,7 @@ export const validatePlayLand = (
   state: GameState,
   action: PlayLand,
 ): Result<GameEvent[], string> => {
-  const step = requireStep(state, ['main1', 'main2']);
+  const step = requireStep(state, [Step.Main1, Step.Main2]);
   if (step) {
     return err(step);
   }
@@ -24,21 +25,21 @@ export const validatePlayLand = (
     return err('already played a land this turn');
   }
   const card = state.cards[action.cardId];
-  if (!card || card.zone !== 'hand' || card.ownerId !== action.playerId) {
+  if (!card || card.zone !== Zone.Hand || card.ownerId !== action.playerId) {
     return err('card not in your hand');
   }
   const def = getCardDefinition(card.definitionId);
-  if (!def.types.includes('land')) {
+  if (!def.types.includes(CardType.Land)) {
     return err('not a land');
   }
 
   return ok<GameEvent[]>([
-    { type: 'land_played', playerId: action.playerId, cardId: card.id },
+    { type: GameEventType.LandPlayed, playerId: action.playerId, cardId: card.id },
     {
-      type: 'card_entered_zone',
+      type: GameEventType.CardEnteredZone,
       cardId: card.id,
-      from: 'hand',
-      to: 'battlefield',
+      from: Zone.Hand,
+      to: Zone.Battlefield,
       causedBy: action.playerId,
     },
   ]);

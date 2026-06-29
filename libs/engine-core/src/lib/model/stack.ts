@@ -1,4 +1,5 @@
 import type { Effect, EffectTarget } from '../cards/effects/effect-types';
+import type { StackItemSource } from './enums';
 import type { CardInstanceId, ManaColor, PlayerId, StackItemId } from './types';
 
 /**
@@ -14,12 +15,7 @@ export type StackItem = {
   controllerId: PlayerId;
   /** The card instance whose cast/trigger put this on the stack. */
   cardId: CardInstanceId;
-  /**
-   * Resolution origin: 'spell' for cast cards (move card to graveyard on
-   * resolution), 'ability' for triggered/activated (no zone move). v0
-   * sets 'spell' only.
-   */
-  source: 'spell' | 'ability';
+  source: StackItemSource;
   effects: Effect[];
   /** Ordered, one per damage-style effect; otherwise empty. */
   targets: EffectTarget[];

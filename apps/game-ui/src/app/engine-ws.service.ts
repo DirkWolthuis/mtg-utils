@@ -12,14 +12,20 @@ import { ClientMessageType, ServerMessageType } from '@mtg-utils/engine-protocol
 
 export { DEFAULT_DECK, computeSpent, getMana };
 
-export type ConnectionStatus = 'disconnected' | 'connecting' | 'waiting' | 'active';
+export enum ConnectionStatus {
+  Disconnected = 'disconnected',
+  Connecting = 'connecting',
+  Waiting = 'waiting',
+  Active = 'active',
+}
 
 @Injectable({ providedIn: 'root' })
 export class EngineWsService {
   readonly view = signal<PlayerView | null>(null);
-  readonly connectionStatus = signal<ConnectionStatus>('disconnected');
+  readonly connectionStatus = signal<ConnectionStatus>(ConnectionStatus.Disconnected);
   readonly lastRejection = signal<string | null>(null);
   readonly log = signal<string[]>([]);
+  readonly serverVersion = signal<string | null>(null);
 
   playerId = '';
   gameId = '';
@@ -36,16 +42,17 @@ export class EngineWsService {
     this.ws?.close();
     this.playerId = playerId;
     this.gameId = gameId;
-    this.connectionStatus.set('connecting');
+    this.connectionStatus.set(ConnectionStatus.Connecting);
     this.log.set([]);
     this.view.set(null);
     this.lastRejection.set(null);
+    this.serverVersion.set(null);
 
     const ws = new WebSocket(url);
     this.ws = ws;
 
     ws.onopen = () => {
-      this.connectionStatus.set('waiting');
+      this.connectionStatus.set(ConnectionStatus.Waiting);
       this.sendRaw({
         type: ClientMessageType.JoinGame,
         gameId: gameId as never,
@@ -62,12 +69,12 @@ export class EngineWsService {
     };
 
     ws.onclose = () => {
-      this.connectionStatus.set('disconnected');
+      this.connectionStatus.set(ConnectionStatus.Disconnected);
       this.addLog('← connection closed');
     };
 
     ws.onerror = () => {
-      this.connectionStatus.set('disconnected');
+      this.connectionStatus.set(ConnectionStatus.Disconnected);
       this.addLog('← connection error');
     };
   }
@@ -91,15 +98,16 @@ export class EngineWsService {
   private handleMessage(msg: ServerMessage): void {
     switch (msg.type) {
       case ServerMessageType.JoinAck:
-        this.addLog(`← join_ack ready=${msg.ready}`);
+        this.serverVersion.set(msg.serverVersion);
+        this.addLog(`← join_ack ready=${msg.ready} version=${msg.serverVersion}`);
         if (msg.ready) {
-          this.connectionStatus.set('active');
+          this.connectionStatus.set(ConnectionStatus.Active);
         }
         return;
       case ServerMessageType.StateSync:
         this.view.set(msg.view);
-        if (this.connectionStatus() !== 'active') {
-          this.connectionStatus.set('active');
+        if (this.connectionStatus() !== ConnectionStatus.Active) {
+          this.connectionStatus.set(ConnectionStatus.Active);
         }
         this.addLog(`← state_sync turn=${msg.view.turn} step=${msg.view.step}`);
         return;

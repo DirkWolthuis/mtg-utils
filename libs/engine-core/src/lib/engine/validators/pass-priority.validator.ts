@@ -1,6 +1,7 @@
 import { err, ok, type Result } from '@mtg-utils/engine-util';
 
 import type { PassPriority } from '../../actions/action';
+import { GameEventType } from '../../model/enums';
 import { otherPlayer, type GameState } from '../../model/game-state';
 import type { GameEvent } from '../events';
 
@@ -12,5 +13,5 @@ export const validatePassPriority = (
     return err(`player ${action.playerId} does not have priority`);
   }
   const to = otherPlayer(state, action.playerId);
-  return ok<GameEvent[]>([{ type: 'priority_passed', from: action.playerId, to }]);
+  return ok<GameEvent[]>([{ type: GameEventType.PriorityPassed, from: action.playerId, to }]);
 };

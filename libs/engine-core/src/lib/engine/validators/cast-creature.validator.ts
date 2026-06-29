@@ -2,6 +2,7 @@ import { err, ok, type Result } from '@mtg-utils/engine-util';
 
 import type { CastCreature } from '../../actions/action';
 import { getCardDefinition } from '../../cards/catalog';
+import { CardType, GameEventType, StackItemSource, Zone } from '../../model/enums';
 import type { GameState } from '../../model/game-state';
 import type { StackItem } from '../../model/stack';
 import type { GameEvent } from '../events';
@@ -17,12 +18,12 @@ export const validateCastCreature = (
   }
 
   const card = state.cards[action.cardId];
-  if (!card || card.zone !== 'hand' || card.ownerId !== action.playerId) {
+  if (!card || card.zone !== Zone.Hand || card.ownerId !== action.playerId) {
     return err('card not in your hand');
   }
 
   const def = getCardDefinition(card.definitionId);
-  if (!def.types.includes('creature')) {
+  if (!def.types.includes(CardType.Creature)) {
     return err('not a creature');
   }
   if (!def.manaCost) {
@@ -45,21 +46,21 @@ export const validateCastCreature = (
     id: nextStackItemId(state, card.id),
     controllerId: action.playerId,
     cardId: card.id,
-    source: 'spell',
+    source: StackItemSource.Spell,
     effects: [],
     targets: [],
     manaSpent: action.manaSpent,
   };
 
   return ok<GameEvent[]>([
-    { type: 'mana_spent', playerId: action.playerId, spent: action.manaSpent },
+    { type: GameEventType.ManaSpent, playerId: action.playerId, spent: action.manaSpent },
     {
-      type: 'card_entered_zone',
+      type: GameEventType.CardEnteredZone,
       cardId: card.id,
-      from: 'hand',
-      to: 'stack',
+      from: Zone.Hand,
+      to: Zone.Stack,
       causedBy: action.playerId,
     },
-    { type: 'spell_put_on_stack', item },
+    { type: GameEventType.SpellPutOnStack, item },
   ]);
 };

@@ -48,3 +48,7 @@ Thumbs.db
 __screenshots__/
 
 vitest.config.*.timestamp*
+
+# Auto-generated build info
+apps/engine-server/src/build-hash.ts
+.commit-hash

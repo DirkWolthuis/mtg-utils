@@ -2,14 +2,14 @@ import { CardType, SuperType } from '../../model/enums';
 import { makeCardDefinitionId } from '../../model/types';
 import type { CardDefinition } from '../card-definition';
 
-export const forest: CardDefinition = {
-  id: makeCardDefinitionId('forest'),
-  name: 'Forest',
+export const plains: CardDefinition = {
+  id: makeCardDefinitionId('plains'),
+  name: 'Plains',
   superTypes: [SuperType.Basic],
   types: [CardType.Land],
-  subtypes: ['Forest'],
+  subtypes: ['Plains'],
   manaCost: null,
   cmc: 0,
   keywords: [],
-  produces: ['G'],
+  produces: ['W'],
 };

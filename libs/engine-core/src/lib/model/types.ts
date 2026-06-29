@@ -1,3 +1,5 @@
+import { CardType, Phase, Step, type Zone } from './enums';
+
 export type PlayerId = string & { readonly __brand: 'PlayerId' };
 export type CardInstanceId = string & { readonly __brand: 'CardInstanceId' };
 export type CardDefinitionId = string & { readonly __brand: 'CardDefinitionId' };
@@ -43,35 +45,13 @@ export const cmcOf = (cost: ManaCost | null): number => {
   );
 };
 
-export type Zone = 'library' | 'hand' | 'battlefield' | 'graveyard' | 'exile' | 'stack';
-
-export type CardType =
-  | 'land'
-  | 'creature'
-  | 'instant'
-  | 'sorcery'
-  | 'enchantment'
-  | 'artifact'
-  | 'planeswalker';
-
 export const isSpellType = (type: CardType): boolean =>
-  type === 'creature' ||
-  type === 'instant' ||
-  type === 'sorcery' ||
-  type === 'enchantment' ||
-  type === 'artifact' ||
-  type === 'planeswalker';
-
-export type SuperType = 'basic' | 'legendary' | 'snow';
-
-export type Keyword =
-  | 'haste'
-  | 'flying'
-  | 'trample'
-  | 'vigilance'
-  | 'lifelink'
-  | 'deathtouch'
-  | 'first_strike';
+  type === CardType.Creature ||
+  type === CardType.Instant ||
+  type === CardType.Sorcery ||
+  type === CardType.Enchantment ||
+  type === CardType.Artifact ||
+  type === CardType.Planeswalker;
 
 export type CardInstance = {
   id: CardInstanceId;
@@ -98,56 +78,40 @@ export type Player = {
   landsPlayedThisTurn: number;
 };
 
-export type Phase = 'beginning' | 'main1' | 'combat' | 'main2' | 'ending';
-
-export type Step =
-  | 'untap'
-  | 'upkeep'
-  | 'draw'
-  | 'main1'
-  | 'begin_combat'
-  | 'declare_attackers'
-  | 'declare_blockers'
-  | 'combat_damage'
-  | 'end_combat'
-  | 'main2'
-  | 'end'
-  | 'cleanup';
-
 export const STEP_ORDER: Step[] = [
-  'untap',
-  'upkeep',
-  'draw',
-  'main1',
-  'begin_combat',
-  'declare_attackers',
-  'declare_blockers',
-  'combat_damage',
-  'end_combat',
-  'main2',
-  'end',
-  'cleanup',
+  Step.Untap,
+  Step.Upkeep,
+  Step.Draw,
+  Step.Main1,
+  Step.BeginCombat,
+  Step.DeclareAttackers,
+  Step.DeclareBlockers,
+  Step.CombatDamage,
+  Step.EndCombat,
+  Step.Main2,
+  Step.End,
+  Step.Cleanup,
 ];
 
 export const phaseOfStep = (step: Step): Phase => {
   switch (step) {
-    case 'untap':
-    case 'upkeep':
-    case 'draw':
-      return 'beginning';
-    case 'main1':
-      return 'main1';
-    case 'begin_combat':
-    case 'declare_attackers':
-    case 'declare_blockers':
-    case 'combat_damage':
-    case 'end_combat':
-      return 'combat';
-    case 'main2':
-      return 'main2';
-    case 'end':
-    case 'cleanup':
-      return 'ending';
+    case Step.Untap:
+    case Step.Upkeep:
+    case Step.Draw:
+      return Phase.Beginning;
+    case Step.Main1:
+      return Phase.Main1;
+    case Step.BeginCombat:
+    case Step.DeclareAttackers:
+    case Step.DeclareBlockers:
+    case Step.CombatDamage:
+    case Step.EndCombat:
+      return Phase.Combat;
+    case Step.Main2:
+      return Phase.Main2;
+    case Step.End:
+    case Step.Cleanup:
+      return Phase.Ending;
   }
 };
 
@@ -174,5 +138,3 @@ export const emptyCombat = (): CombatState => ({
   attackersDeclared: false,
   blockersDeclared: false,
 });
-
-export type GameStatus = 'waiting' | 'active' | 'ended';

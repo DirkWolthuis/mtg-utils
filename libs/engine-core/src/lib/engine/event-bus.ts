@@ -1,5 +1,6 @@
+import type { GameEventType } from '../model/enums';
 import type { GameState } from '../model/game-state';
-import type { GameEvent, GameEventType } from './events';
+import type { GameEvent } from './events';
 
 export type Subscriber = (state: GameState, event: GameEvent) => GameEvent[];
 

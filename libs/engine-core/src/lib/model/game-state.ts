@@ -1,14 +1,6 @@
+import type { GameStatus, Step } from './enums';
 import type { StackItem } from './stack';
-import type {
-  CardInstance,
-  CardInstanceId,
-  CombatState,
-  GameId,
-  GameStatus,
-  Player,
-  PlayerId,
-  Step,
-} from './types';
+import type { CardInstance, CardInstanceId, CombatState, GameId, Player, PlayerId } from './types';
 
 export type GameState = {
   id: GameId;

@@ -1,8 +1,18 @@
+import {
+  type CombatDeclaration,
+  type GameEventType,
+  type LifeChangeReason,
+  type PlayerLostReason,
+  type PriorityResetReason,
+  type Step,
+  type TargetKind,
+  type Zone,
+} from '../model/enums';
 import type { StackItem } from '../model/stack';
-import type { CardInstanceId, ManaColor, PlayerId, StackItemId, Step, Zone } from '../model/types';
+import type { CardInstanceId, ManaColor, PlayerId, StackItemId } from '../model/types';
 
 export type CardEnteredZone = {
-  type: 'card_entered_zone';
+  type: GameEventType.CardEnteredZone;
   cardId: CardInstanceId;
   from: Zone;
   to: Zone;
@@ -10,17 +20,17 @@ export type CardEnteredZone = {
 };
 
 export type PermanentTapped = {
-  type: 'permanent_tapped';
+  type: GameEventType.PermanentTapped;
   cardId: CardInstanceId;
 };
 
 export type PermanentUntapped = {
-  type: 'permanent_untapped';
+  type: GameEventType.PermanentUntapped;
   cardId: CardInstanceId;
 };
 
 export type ManaProduced = {
-  type: 'mana_produced';
+  type: GameEventType.ManaProduced;
   playerId: PlayerId;
   color: ManaColor;
   amount: number;
@@ -28,127 +38,141 @@ export type ManaProduced = {
 };
 
 export type ManaSpent = {
-  type: 'mana_spent';
+  type: GameEventType.ManaSpent;
   playerId: PlayerId;
   spent: Partial<Record<ManaColor, number>>;
 };
 
 export type ManaPoolEmptied = {
-  type: 'mana_pool_emptied';
+  type: GameEventType.ManaPoolEmptied;
   playerId: PlayerId;
 };
 
 export type DamageDealt = {
-  type: 'damage_dealt';
+  type: GameEventType.DamageDealt;
   sourceCardId: CardInstanceId;
-  target: { kind: 'player'; playerId: PlayerId } | { kind: 'permanent'; cardId: CardInstanceId };
+  target:
+    | { kind: TargetKind.Player; playerId: PlayerId }
+    | { kind: TargetKind.Permanent; cardId: CardInstanceId };
   amount: number;
   combat: boolean;
 };
 
 export type LifeChanged = {
-  type: 'life_changed';
+  type: GameEventType.LifeChanged;
   playerId: PlayerId;
   delta: number;
-  reason: 'damage' | 'lifelink' | 'effect';
+  reason: LifeChangeReason;
 };
 
 export type CardDrawn = {
-  type: 'card_drawn';
+  type: GameEventType.CardDrawn;
   playerId: PlayerId;
   cardId: CardInstanceId;
 };
 
 export type DrawAttemptedEmpty = {
-  type: 'draw_attempted_empty';
+  type: GameEventType.DrawAttemptedEmpty;
   playerId: PlayerId;
 };
 
 export type LandPlayed = {
-  type: 'land_played';
+  type: GameEventType.LandPlayed;
   playerId: PlayerId;
   cardId: CardInstanceId;
 };
 
 export type SpellPutOnStack = {
-  type: 'spell_put_on_stack';
+  type: GameEventType.SpellPutOnStack;
   item: StackItem;
 };
 
 export type StackItemResolved = {
-  type: 'stack_item_resolved';
+  type: GameEventType.StackItemResolved;
   stackItemId: StackItemId;
 };
 
 export type PriorityPassed = {
-  type: 'priority_passed';
+  type: GameEventType.PriorityPassed;
   from: PlayerId;
   to: PlayerId;
 };
 
 export type PriorityReset = {
-  type: 'priority_reset';
+  type: GameEventType.PriorityReset;
   to: PlayerId;
-  /** Why priority was reset (state change on stack, step transition). */
-  reason: 'stack_changed' | 'step_started';
+  /** Why priority was reset (state change on stack, step transition, combat declaration). */
+  reason: PriorityResetReason;
 };
 
 export type CreatureDied = {
-  type: 'creature_died';
+  type: GameEventType.CreatureDied;
   cardId: CardInstanceId;
 };
 
 export type AttackerDeclared = {
-  type: 'attacker_declared';
+  type: GameEventType.AttackerDeclared;
   attackerId: CardInstanceId;
   defenderId: PlayerId;
 };
 
 export type BlockerDeclared = {
-  type: 'blocker_declared';
+  type: GameEventType.BlockerDeclared;
   blockerId: CardInstanceId;
   attackerId: CardInstanceId;
 };
 
+/**
+ * Marks that the turn-based declaration for a combat step is complete. Flips
+ * the matching `combat.attackersDeclared` / `combat.blockersDeclared` flag so
+ * the declaration can't be repeated, then a priority window opens (the loop
+ * resets priority to the active player) before the step advances. This is what
+ * makes combat tricks possible — instants can respond to attackers and blockers.
+ */
+export type CombatDeclared = {
+  type: GameEventType.CombatDeclared;
+  declaration: CombatDeclaration;
+};
+
 export type CombatDamageMarked = {
-  type: 'combat_damage_marked';
+  type: GameEventType.CombatDamageMarked;
 };
 
 export type DamageClearedAtCleanup = {
-  type: 'damage_cleared_at_cleanup';
+  type: GameEventType.DamageClearedAtCleanup;
 };
 
 export type SummoningSicknessCleared = {
-  type: 'summoning_sickness_cleared';
+  type: GameEventType.SummoningSicknessCleared;
   cardId: CardInstanceId;
 };
 
 export type StepAdvanced = {
-  type: 'step_advanced';
+  type: GameEventType.StepAdvanced;
   from: Step;
   to: Step;
   turn: number;
 };
 
 export type TurnStarted = {
-  type: 'turn_started';
+  type: GameEventType.TurnStarted;
   turn: number;
   activePlayer: PlayerId;
 };
 
 export type LandsPlayedReset = {
-  type: 'lands_played_reset';
+  type: GameEventType.LandsPlayedReset;
   playerId: PlayerId;
 };
 
 export type PlayerLost = {
-  type: 'player_lost';
+  type: GameEventType.PlayerLost;
   playerId: PlayerId;
-  reason: 'life' | 'deck_out' | 'concede';
+  reason: PlayerLostReason;
 };
 
 export type GameEnded = {
-  type: 'game_ended';
+  type: GameEventType.GameEnded;
   winner: PlayerId | null;
 };
 
@@ -171,6 +195,7 @@ export type GameEvent =
   | CreatureDied
   | AttackerDeclared
   | BlockerDeclared
+  | CombatDeclared
   | CombatDamageMarked
   | DamageClearedAtCleanup
   | SummoningSicknessCleared
@@ -179,5 +204,3 @@ export type GameEvent =
   | LandsPlayedReset
   | PlayerLost
   | GameEnded;
-
-export type GameEventType = GameEvent['type'];

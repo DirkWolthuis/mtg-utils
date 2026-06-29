@@ -1,24 +1,27 @@
+import { type EffectType, type TargetKind } from '../../model/enums';
 import type { CardInstanceId, PlayerId } from '../../model/types';
 
 export type EffectTarget =
-  | { kind: 'player'; playerId: PlayerId }
-  | { kind: 'permanent'; cardId: CardInstanceId };
+  | { kind: TargetKind.Player; playerId: PlayerId }
+  | { kind: TargetKind.Permanent; cardId: CardInstanceId };
 
 export type DealDamageToAny = {
-  type: 'deal_damage_to_any';
+  type: EffectType.DealDamageToAny;
   amount: number;
 };
 
 export type DrawCards = {
-  type: 'draw_cards';
+  type: EffectType.DrawCards;
   count: number;
 };
 
 export type GainLife = {
-  type: 'gain_life';
+  type: EffectType.GainLife;
   amount: number;
 };
 
-export type Effect = DealDamageToAny | DrawCards | GainLife;
+export type DestroyPermanent = {
+  type: EffectType.DestroyPermanent;
+};
 
-export type EffectType = Effect['type'];
+export type Effect = DealDamageToAny | DrawCards | GainLife | DestroyPermanent;

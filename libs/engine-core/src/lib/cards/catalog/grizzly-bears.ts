@@ -1,3 +1,4 @@
+import { CardType } from '../../model/enums';
 import { makeCardDefinitionId } from '../../model/types';
 import type { CardDefinition } from '../card-definition';
 
@@ -5,7 +6,7 @@ export const grizzlyBears: CardDefinition = {
   id: makeCardDefinitionId('grizzly-bears'),
   name: 'Grizzly Bears',
   superTypes: [],
-  types: ['creature'],
+  types: [CardType.Creature],
   subtypes: ['Bear'],
   manaCost: { G: 1, generic: 1 },
   cmc: 2,

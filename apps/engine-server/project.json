@@ -5,8 +5,17 @@
   "projectType": "application",
   "tags": [],
   "targets": {
+    "gen-hash": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "node apps/engine-server/gen-build-hash.mjs"
+      }
+    },
     "build": {
       "executor": "@nx/esbuild:esbuild",
+      "dependsOn": ["gen-hash"],
+      "inputs": ["default", { "fileset": "{projectRoot}/src/build-hash.ts" }],
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
@@ -42,7 +51,7 @@
       "continuous": true,
       "executor": "@nx/js:node",
       "defaultConfiguration": "development",
-      "dependsOn": ["build"],
+      "dependsOn": ["gen-hash", "build"],
       "options": {
         "buildTarget": "engine-server:build",
         "runBuildTargetDependencies": false

@@ -2,15 +2,15 @@ import { CardType } from '../../model/enums';
 import { makeCardDefinitionId } from '../../model/types';
 import type { CardDefinition } from '../card-definition';
 
-export const hillGiant: CardDefinition = {
-  id: makeCardDefinitionId('hill-giant'),
-  name: 'Hill Giant',
+export const savannahLions: CardDefinition = {
+  id: makeCardDefinitionId('savannah-lions'),
+  name: 'Savannah Lions',
   superTypes: [],
   types: [CardType.Creature],
-  subtypes: ['Giant'],
-  manaCost: { R: 1, generic: 3 },
-  cmc: 4,
-  power: 3,
-  toughness: 3,
+  subtypes: ['Cat'],
+  manaCost: { W: 1 },
+  cmc: 1,
+  power: 2,
+  toughness: 1,
   keywords: [],
 };

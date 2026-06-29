@@ -1,3 +1,4 @@
+import { Zone } from '../model/enums';
 import type { GameState } from '../model/game-state';
 import type { StackItem } from '../model/stack';
 import type { CardInstance, CardInstanceId, Player, PlayerId } from '../model/types';
@@ -40,10 +41,13 @@ export const projectFor = (state: GameState, viewer: PlayerId): PlayerView => {
   const cards: Record<CardInstanceId, CardInstance> = {};
   const isVisible = (c: CardInstance): boolean => {
     if (c.ownerId === viewer) {
-      return c.zone !== 'library';
+      return c.zone !== Zone.Library;
     }
     return (
-      c.zone === 'battlefield' || c.zone === 'graveyard' || c.zone === 'exile' || c.zone === 'stack'
+      c.zone === Zone.Battlefield ||
+      c.zone === Zone.Graveyard ||
+      c.zone === Zone.Exile ||
+      c.zone === Zone.Stack
     );
   };
   for (const id of Object.keys(state.cards) as CardInstanceId[]) {

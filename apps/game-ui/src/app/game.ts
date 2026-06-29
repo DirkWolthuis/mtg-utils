@@ -10,14 +10,27 @@ import { FormsModule } from '@angular/forms';
 import type {
   CardInstance,
   CardInstanceId,
-  CardType,
   ManaColor,
   ManaCost,
   PlayerId,
   PlayerView,
 } from '@mtg-utils/engine-core';
-import { ActionType, getCardDefinition } from '@mtg-utils/engine-core';
-import { DEFAULT_DECK, EngineWsService, computeSpent, getMana } from './engine-ws.service';
+import {
+  ActionType,
+  CardType,
+  EffectType,
+  GameStatus,
+  Step,
+  TargetKind,
+  getCardDefinition,
+} from '@mtg-utils/engine-core';
+import {
+  ConnectionStatus,
+  DEFAULT_DECK,
+  EngineWsService,
+  computeSpent,
+  getMana,
+} from './engine-ws.service';
 import { RuntimeConfigService } from './runtime-config.service';
 
 type CardRow = {
@@ -71,6 +84,11 @@ const toCardRow = (id: CardInstanceId, v: PlayerView): CardRow => {
   imports: [FormsModule],
 })
 export class Game {
+  // Exposed to the template so it can compare against enum members rather than string literals.
+  protected readonly CardType = CardType;
+  protected readonly Step = Step;
+  protected readonly ConnectionStatus = ConnectionStatus;
+
   protected readonly ws = inject(EngineWsService);
 
   // Join form fields
@@ -111,7 +129,7 @@ export class Game {
       if (v === this.lastAutoPassedView) {
         return;
       }
-      if (v.status !== 'active') {
+      if (v.status !== GameStatus.Active) {
         return;
       }
       if (v.priorityPlayer !== v.forPlayer) {
@@ -207,12 +225,20 @@ export class Game {
   }
 
   protected skipTurn(): void {
+    if (this.isSkipping()) {
+      this.skipUntilTurn.set(null);
+      return;
+    }
     const v = this.ws.view();
     if (!v) {
       return;
     }
-    this.skipUntilTurn.set(v.turn);
-    this.lastAutoPassedView = null;
+    if (this.skipUntilTurn() !== null) {
+      this.skipUntilTurn.set(null);
+    } else {
+      this.skipUntilTurn.set(v.turn);
+      this.lastAutoPassedView = null;
+    }
   }
 
   protected playCard(id: CardInstanceId): void {
@@ -227,24 +253,40 @@ export class Game {
     const def = getCardDefinition(inst.definitionId);
     const playerId: PlayerId = v.forPlayer;
 
-    if (def.types.includes('land')) {
+    if (def.types.includes(CardType.Land)) {
       this.ws.submit({ type: ActionType.PlayLand, playerId, cardId: id });
       return;
     }
 
     const spent = computeSpent(def.manaCost, v.self.manaPool);
 
-    if (def.types.includes('creature')) {
+    if (def.types.includes(CardType.Creature)) {
       this.ws.submit({ type: ActionType.CastCreature, playerId, cardId: id, manaSpent: spent });
       return;
     }
 
-    if (def.types.includes('sorcery') || def.types.includes('instant')) {
+    if (def.types.includes(CardType.Sorcery) || def.types.includes(CardType.Instant)) {
       const opponentId = v.opponent.id as PlayerId;
+      const opponentCreatures = v.battlefield.filter(
+        (cid) => v.cards[cid]?.controllerId !== v.forPlayer,
+      );
       const targets = (def.effects ?? [])
-        .filter((e) => e.type === 'deal_damage_to_any')
-        .map(() => ({ kind: 'player' as const, playerId: opponentId }));
-      const type = def.types.includes('instant') ? ActionType.CastInstant : ActionType.CastSorcery;
+        .map((e) => {
+          if (e.type === EffectType.DealDamageToAny) {
+            return { kind: TargetKind.Player as const, playerId: opponentId };
+          }
+          if (e.type === EffectType.DestroyPermanent) {
+            const targetId = opponentCreatures[0];
+            return targetId
+              ? { kind: TargetKind.Permanent as const, cardId: targetId }
+              : { kind: TargetKind.Player as const, playerId: opponentId };
+          }
+          return null;
+        })
+        .filter((t): t is NonNullable<typeof t> => t !== null);
+      const type = def.types.includes(CardType.Instant)
+        ? ActionType.CastInstant
+        : ActionType.CastSorcery;
       this.ws.submit({ type, playerId, cardId: id, manaSpent: spent, targets });
     }
   }
